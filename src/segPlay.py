@@ -1,14 +1,15 @@
 import pickle 
 import numpy as np
 import networkx as nx
-import SegLib as seg
+import SegGraph as seg
+import VizGraph as viz
 import matplotlib.pyplot as plt
 
 
 def FixedThresholdExp():
 
-    rg = seg.random_graph(3, 5, False)    
-    seg.DrawGraph(rg, 'original')    
+    rg = seg.InitRandom(3, 1, False)    
+    viz.DrawGraph(rg, 'original')    
 
     ##############################
     ## CC Labeling 
@@ -16,31 +17,42 @@ def FixedThresholdExp():
     ccEnergy = seg.GetLabelEnergy(rg, ccLabels)
     print("CC Labeling: " + str(ccEnergy))    
 
-    seg.DrawLabeledGraph(rg, ccLabels, 'CC labels')
+    viz.DrawLabeledGraph(rg, ccLabels, 'CC labels')
 
 
     ##############################
     ## WC Labeling         
     wg = seg.GetWatershedGraph(rg)
-    seg.DrawGraph(wg, 'watershed')    
+    viz.DrawGraph(wg, 'watershed')    
     
     wcLabels = seg.GetLabelsAtThreshold(wg,0)
     wcEnergy = seg.GetLabelEnergy(rg, wcLabels)
     print("WC Labeling: " + str(wcEnergy))    
 
-    seg.DrawLabeledGraph(wg, wcLabels, 'WC labels')
+    viz.DrawLabeledGraph(wg, wcLabels, 'WC labels')
 
     ##############################
     ## Best Labeling 
 
     bestEnergy, BL = seg.minimum_energy(rg)
     print("Min Energy: " + str(bestEnergy))    
-    seg.DrawGraph(BL, 'Best Labeling')      
+    viz.DrawGraph(BL, 'Best Labeling')      
+
+    plt.show() 
+
+def TestKruskal():
+    #np.random.seed(1)
+    WG = seg.InitRandom(3, 1, False)    
+    
+    viz.DrawGraph(WG, 'original')    
+
+    thresh, energy = seg.FindMinEnergyThreshold(WG)
 
     plt.show() 
 
 
 if __name__ == '__main__':
-    
-
-    FixedThresholdExp()    
+    print("Init")
+    TestKruskal()    
+    #FixedThresholdExp()    
+    print("Exit")

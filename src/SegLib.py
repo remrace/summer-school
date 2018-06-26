@@ -214,3 +214,8 @@ def DrawGraph(G, title=''):
         fig = plt.gcf()
         fig.canvas.set_window_title(title)
 
+
+#def FindMinEnergyThreshold(G):
+#    nx.utils.union_find()
+#     X[item] r
+#     X.union(item1, item2, ...) m
