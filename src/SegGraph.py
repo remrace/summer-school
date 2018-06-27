@@ -85,9 +85,8 @@ def GetWatershedGraph(G):
     for (u,v,d) in WG.edges(data = True):
         #print(u)        
         uew = [WG[u][ues]['weight'] for ues in WG[u] if ues != v]
-        vew = [WG[v][ves]['weight'] for ves in WG[v] if ves != u]
-        d['weight'] = max(min(uew), min(vew)) - d['weight']
-        #d['weight'] = d['weight'] - max(min(uew), min(vew))
+        vew = [WG[v][ves]['weight'] for ves in WG[v] if ves != u]        
+        d['weight'] = d['weight'] - min(max(uew), max(vew))
     return WG
 
 def GetLabelEnergy(G, L):
@@ -105,7 +104,7 @@ def GetLowerBound(WG):
     return totalNeg
 
 
-def FindMinEnergyThreshold(WG):
+def FindMinEnergyThreshold(WG, eval=None):
     
     mySets = nx.utils.UnionFind()   
     nextNode = dict()
@@ -115,9 +114,15 @@ def FindMinEnergyThreshold(WG):
 
     edgeWeights = [(u,v,w) for (u,v,w) in WG.edges(data = 'weight')]    
 
-    totalPos = sum([d[2] for d in edgeWeights if d[2] > 0])
-    totalNeg = sum([d[2] for d in edgeWeights if d[2] < 0])
-    accTotal = [0]*len(edgeWeights)
+    if eval is None:
+        evalWeights = edgeWeights
+        eval = WG
+    else:
+        evalWeights = [(u,v,w) for (u,v,w) in eval.edges(data = 'weight')]    
+
+    totalPos = sum([d[2] for d in evalWeights if d[2] > 0])
+    totalNeg = sum([d[2] for d in evalWeights if d[2] < 0])
+    accTotal = [0]*len(evalWeights)
 
     accTotal[0] = totalPos + totalNeg
     #print("Energy 0: " + str(accTotal[0]) + " from Pos: " + str(totalPos) + ", Neg: " + str(totalNeg))
@@ -138,7 +143,7 @@ def FindMinEnergyThreshold(WG):
             while not done:
                 for uev in WG[cu]:                
                     if mySets[uev] == mySets[v]:
-                        accWeight = accWeight + WG[cu][uev]['weight']
+                        accWeight = accWeight + eval[cu][uev]['weight']
                 cu = nextNode[cu]
                 if cu == u:
                     done = True
@@ -151,7 +156,7 @@ def FindMinEnergyThreshold(WG):
             nextNode[v] = tempNext
 
             accTotal[ei] = accTotal[ei-1] - accWeight            
-            #print("Energy " + str(ei) + ": " + str(accTotal[ei]) + " from merge " + str(accWeight)) 
+            #print("Energy at threshold " + str(w) + ": " + str(accTotal[ei]))
             if accTotal[ei] < lowE:
                 lowE = accTotal[ei]
                 lowT = w - DELTA_TOLERANCE

@@ -5,54 +5,32 @@ import SegGraph as seg
 import VizGraph as viz
 import BansalSolver as bansal
 import matplotlib.pyplot as plt
+import DsnNode as dsnNode
 
 def TestBest():
-        #for mySeed in range(100):
-        mySeed = 37
+    for mySeed in range(100):
+        #mySeed = 37
         np.random.seed(mySeed)
         rg = seg.InitRandom(3)    
-        viz.DrawGraph(rg, title='original')    
+        #viz.DrawGraph(rg, title='original')    
         print("Seed " + str(mySeed))
-        ##############################
+        
         ## Best Labeling 
         bestEnergy, BL = seg.minimum_energy(rg)
-        print("  Best Energy: " + str(bestEnergy))    
-        viz.DrawGraph(BL, title='Best Labeling')      
+        #print("  Best Energy: " + str(bestEnergy))    
+        #viz.DrawGraph(BL, title='Best Labeling')      
 
-        ##############################
-        ## CC Labeling 
-        #ccLabels = seg.GetLabelsAtThreshold(rg,0)
-        #ccEnergy = seg.GetLabelEnergy(rg, ccLabels)
-        #print("CC Labeling: " + str(ccEnergy))    
-        #viz.DrawGraph(rg, labels=ccLabels, title='CC labels')
-
-        thresh, minE = seg.FindMinEnergyThreshold(rg)
-        print("  Min  Energy: " + str(minE) + "           @ t=" + str(thresh))    
-        #print("Minimum energy at " + str(thresh) + " is " + str(minE))    
-        # check to see if that's correct
-        L = seg.GetLabelsAtThreshold(rg,theta=thresh)
-        E2 = seg.GetLabelEnergy(rg, L)
-        print("Energy check: " + str(E2))
-        viz.DrawGraph(rg, labels=L, title='bestThresh')    
-
-        wg = seg.GetWatershedGraph(rg)
-        viz.DrawGraph(wg, title='watershed')    
-        threshw, minEW = seg.FindMinEnergyThreshold(wg)
-        print("  Min  Energy: " + str(minEW) + "           @ t=" + str(threshw))    
-        #print("Minimum energy at " + str(thresh) + " is " + str(minE))    
-        # check to see if that's correct
-        LW = seg.GetLabelsAtThreshold(wg,theta=threshw)
-        EW = seg.GetLabelEnergy(rg, LW)
-        print("Energy check: " + str(EW))
-        viz.DrawGraph(rg, labels=LW, title='bestWS')    
-
-
-        #wcLabels = seg.GetLabelsAtThreshold(wg,0)
-        #wcEnergy = seg.GetLabelEnergy(rg, wcLabels)
-        #print("WC Labeling: " + str(wcEnergy))    
-        #viz.DrawGraph(wg, labels=wcLabels, title='WC labels')
-
-        plt.show()    
+        #print("  Connected Components")
+        labelsCC, paramsCC, energyCC = dsnNode.Minimize(rg, nodeType='CC')
+        #viz.DrawGraph(rg, labels=labelsCC, title='CC labels')
+        
+        #print("  WatershedCut")
+        labelsWC, paramsWC, energyWC = dsnNode.Minimize(rg, nodeType='WC')                
+        #viz.DrawGraph(rg, labels=labelsWC, title='WC labels')
+        print("  BE: " + str(bestEnergy))    
+        print("  CC: " + str(energyCC))
+        print(" WC: " + str(energyWC))
+        #plt.show()    
 
 
 

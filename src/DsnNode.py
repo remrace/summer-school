@@ -11,15 +11,29 @@ def Minimize(WG, nodeType=None):
     if nodeType is None:
         nodeType = 'CC'    
     
-    print("DsnNode: Minimizing...")
+    #print("DsnNode: Minimizing...")
     param = dict()
     param['nodeType'] = nodeType
 
-    thresh, minE = seg.FindMinEnergyThreshold(WG)
-    param['threshold'] = thresh
+    if nodeType == 'CC':
+        thresh, minE = seg.FindMinEnergyThreshold(WG)
+        #print("WS Min  Energy: " + str(minE) + "           @ t=" + str(thresh))                    
+        param['threshold'] = thresh
+        L = seg.GetLabelsAtThreshold(WG, theta=thresh)
+        #E2 = seg.GetLabelEnergy(WG, L)
+        #print("Energy check: " + str(minE) + " verse " + str(E2))
+    
+    elif nodeType == 'WC':
+        WC = seg.GetWatershedGraph(WG)
+        
+        thresh, minE = seg.FindMinEnergyThreshold(WC, eval=WG)
+        #print("WS Min  Energy: " + str(minE) + "           @ t=" + str(thresh))    
+        param['threshold'] = thresh
+        L = seg.GetLabelsAtThreshold(WC,theta=thresh)
+        #E2 = seg.GetLabelEnergy(WG, L)
+        #print("Energy check: " + str(E2))        
 
-    LG = seg.GetLabelsAtThreshold(WG, theta=thresh)
 
-    print("DsnNode: Done")
-    return LG, param, minE 
+    #print("DsnNode: Done")
+    return L, param, minE 
 
