@@ -3,56 +3,45 @@ import numpy as np
 import networkx as nx
 import SegGraph as seg
 import VizGraph as viz
+import DsnTree as dsnTree
 import matplotlib.pyplot as plt
 
 
-def FixedThresholdExp():
-
-    rg = seg.InitRandom(3, 1, False)    
-    viz.DrawGraph(rg, 'original')    
-
-    ##############################
-    ## CC Labeling 
-    ccLabels = seg.GetLabelsAtThreshold(rg,0)
-    ccEnergy = seg.GetLabelEnergy(rg, ccLabels)
-    print("CC Labeling: " + str(ccEnergy))    
-
-    viz.DrawLabeledGraph(rg, ccLabels, 'CC labels')
-
-
-    ##############################
-    ## WC Labeling         
-    wg = seg.GetWatershedGraph(rg)
-    viz.DrawGraph(wg, 'watershed')    
-    
-    wcLabels = seg.GetLabelsAtThreshold(wg,0)
-    wcEnergy = seg.GetLabelEnergy(rg, wcLabels)
-    print("WC Labeling: " + str(wcEnergy))    
-
-    viz.DrawLabeledGraph(wg, wcLabels, 'WC labels')
-
-    ##############################
-    ## Best Labeling 
-
-    bestEnergy, BL = seg.minimum_energy(rg)
-    print("Min Energy: " + str(bestEnergy))    
-    viz.DrawGraph(BL, 'Best Labeling')      
-
-    plt.show() 
-
-def TestKruskal():
+def TestDSN():
     #np.random.seed(1)
-    WG = seg.InitRandom(3, 1, False)    
-    
-    viz.DrawGraph(WG, 'original')    
+    WG = seg.InitRandom(10, 1, False)
+    viz.DrawGraph(WG, title='original')    
 
-    thresh, energy = seg.FindMinEnergyThreshold(WG)
+    # This is not a valid partition
+    maxNeg = seg.GetLowerBound(WG)
+    print("Maximum negative " + str(maxNeg))
+
+    # Run our minimizer
+    L, params, E = dsnTree.Minimize(WG)
+
+    print("Energy was " + str(E))
+    viz.DrawGraph(WG, labels=L, title='dsn')    
 
     plt.show() 
+
+
+def TestEnumerate():
+
+    allNodes = list(range(1,10))
+    print(allNodes)
+    print(allNodes[1:])
+
+    result = seg.PartitionSet(allNodes)
+    ri = 0
+
+    for r in result:         
+        ri = ri + 1
+
+    print(str(ri))
 
 
 if __name__ == '__main__':
     print("Init")
-    TestKruskal()    
-    #FixedThresholdExp()    
+    #TestDSN()
+    TestEnumerate()
     print("Exit")
