@@ -24,6 +24,36 @@ def PartitionSet(theSet):
     for n, p in enumerate(PartitionRecursive(theSet), 1):
         yield p
 
+
+def powerset(iterable):
+    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+    s = list(iterable)
+    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)+1))
+
+
+def minimum_energy(G,print_all_graphs = False):
+    min_energy = 0
+    M = G.copy()
+    for cut_edges in powerset(G.edges):
+        H = G.copy()
+        H.remove_edges_from(cut_edges)
+        components = [[x for x in comp] for comp in nx.connected_components(H)]
+        energy = 0
+        for edge in cut_edges:
+            if not any(edge[0] in comp and edge[1] in comp for comp in components):
+                energy+=G.edges[edge]['weight']
+        
+        if print_all_graphs:
+            drawing(H)
+            print('energy:', energy)
+            
+        if energy < min_energy:
+            min_energy = energy
+            M = H.copy()
+    #print('min energy: ', min_energy)
+    #drawing(M)
+    return(min_energy, M)
+
 def InitRandom(width, maxValue=None, makeInt=None, makePeriodic=None):
     if maxValue is None:
         maxValue = 1
@@ -56,7 +86,8 @@ def GetWatershedGraph(G):
         #print(u)        
         uew = [WG[u][ues]['weight'] for ues in WG[u] if ues != v]
         vew = [WG[v][ves]['weight'] for ves in WG[v] if ves != u]
-        d['weight'] = d['weight'] - max(min(uew), min(vew))       
+        d['weight'] = max(min(uew), min(vew)) - d['weight']
+        #d['weight'] = d['weight'] - max(min(uew), min(vew))
     return WG
 
 def GetLabelEnergy(G, L):

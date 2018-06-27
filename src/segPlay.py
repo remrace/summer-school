@@ -43,5 +43,5 @@ def TestEnumerate():
 if __name__ == '__main__':
     print("Init")
     #TestDSN()
-    TestEnumerate()
+    #TestEnumerate()
     print("Exit")
