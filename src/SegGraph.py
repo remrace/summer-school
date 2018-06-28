@@ -150,7 +150,7 @@ def FindMinEnergyThreshold(WG, eval=None):
 
             # Merge sets
             mySets.union(u, v)
-            # Swap next pointers... this incrementall builds a pointer cycle around all the nodes in the component
+            # Swap next pointers... this incrementally builds a pointer cycle around all the nodes in the component
             tempNext = nextNode[u]
             nextNode[u] = nextNode[v]
             nextNode[v] = tempNext

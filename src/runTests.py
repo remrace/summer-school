@@ -6,30 +6,34 @@ import VizGraph as viz
 import BansalSolver as bansal
 import matplotlib.pyplot as plt
 import DsnNode as dsnNode
+import CVXSolver as cvx
 
 def TestBest():
-    for mySeed in range(100):
-        #mySeed = 37
+        #for mySeed in range(100):
+        mySeed = 37
         np.random.seed(mySeed)
-        rg = seg.InitRandom(3)    
+        rg = seg.InitRandom(3)
+
         #viz.DrawGraph(rg, title='original')    
         print("Seed " + str(mySeed))
-        
+                
+        bestEnergy, BL = cvx.Minimize(rg)
+
         ## Best Labeling 
-        bestEnergy, BL = seg.minimum_energy(rg)
+        #bestEnergy, BL = seg.minimum_energy(rg)
         #print("  Best Energy: " + str(bestEnergy))    
         #viz.DrawGraph(BL, title='Best Labeling')      
 
         #print("  Connected Components")
-        labelsCC, paramsCC, energyCC = dsnNode.Minimize(rg, nodeType='CC')
+        #labelsCC, paramsCC, energyCC = dsnNode.Minimize(rg, nodeType='CC')
         #viz.DrawGraph(rg, labels=labelsCC, title='CC labels')
         
         #print("  WatershedCut")
-        labelsWC, paramsWC, energyWC = dsnNode.Minimize(rg, nodeType='WC')                
+        #labelsWC, paramsWC, energyWC = dsnNode.Minimize(rg, nodeType='WC')                
         #viz.DrawGraph(rg, labels=labelsWC, title='WC labels')
-        print("  BE: " + str(bestEnergy))    
-        print("  CC: " + str(energyCC))
-        print(" WC: " + str(energyWC))
+        #print("  BE: " + str(bestEnergy))    
+        #print("  CC: " + str(energyCC))
+        #print(" WC: " + str(energyWC))
         #plt.show()    
 
 
