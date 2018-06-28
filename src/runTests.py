@@ -14,7 +14,7 @@ def TestBest():
         np.random.seed(mySeed)
         rg = seg.InitRandom(3)
 
-        #viz.DrawGraph(rg, title='original')    
+        viz.DrawGraph(rg, title='original')    
         print("Seed " + str(mySeed))
                 
         bestEnergy, BL = cvx.Minimize(rg)
@@ -38,32 +38,29 @@ def TestBest():
 
 
 
-def TestWatershed():
+def TestWatershed():        
+        mySeed = 0
+        #for mySeed in range(100):
+        np.random.seed(mySeed)
+        rg = seg.InitRandom(3)    
+        viz.DrawGraph(rg, title='original')    
 
-    rg = seg.InitRandom(3, 1, False)    
-    viz.DrawGraph(rg, title='original')    
+        orig = seg.FindFrustrated(rg)
+        
+        ##############################
+        ## WC Labeling         
+        wg = seg.GetWatershedGraph(rg)
+        viz.DrawGraph(wg, title='watershed')    
+        
+        ws = seg.FindFrustrated(wg)
+        
+        print("Seed " + str(mySeed) + " Orig : " + str(orig) + " and WS : " + str(ws)) 
+        #wcLabels = seg.GetLabelsAtThreshold(wg,0)
+        #wcEnergy = seg.GetLabelEnergy(rg, wcLabels)
+        #print("WC Labeling: " + str(wcEnergy))    
+        #viz.DrawGraph(wg, labels=wcLabels, title='WC labels')
 
-    ##############################
-    ## CC Labeling 
-    ccLabels = seg.GetLabelsAtThreshold(rg,0)
-    ccEnergy = seg.GetLabelEnergy(rg, ccLabels)
-    print("CC Labeling: " + str(ccEnergy))    
-
-    viz.DrawGraph(rg, labels=ccLabels, title='CC labels')
-
-
-    ##############################
-    ## WC Labeling         
-    wg = seg.GetWatershedGraph(rg)
-    viz.DrawGraph(wg, title='watershed')    
-    
-    wcLabels = seg.GetLabelsAtThreshold(wg,0)
-    wcEnergy = seg.GetLabelEnergy(rg, wcLabels)
-    print("WC Labeling: " + str(wcEnergy))    
-
-    viz.DrawGraph(wg, labels=wcLabels, title='WC labels')
-
-    plt.show() 
+        plt.show() 
 
 def TestKruskal():
     #np.random.seed(1)
@@ -122,8 +119,8 @@ def TestBansal():
 if __name__ == '__main__':
     print("Init")
     
-    #TestWatershed()    
+    TestWatershed()    
     #TestKruskal()    
     #TestBansal()
-    TestBest()
+    #TestBest()
     print("Exit")

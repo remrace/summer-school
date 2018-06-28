@@ -54,6 +54,34 @@ def minimum_energy(G,print_all_graphs = False):
     #drawing(M)
     return(min_energy, M)
 
+from itertools import islice
+def k_shortest_paths(G, source, target, k, weight=None):
+    return list(islice(nx.shortest_simple_paths(G, source, target, weight), k))
+
+from itertools import tee
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
+def FindFrustrated(G):
+
+    for u, v, w in G.edges(data = 'weight'):
+        posPath = 0 
+        negPath = 0 
+        for path in nx.shortest_simple_paths(G, u, v):            
+            pathWeights = [G[edge[0]][edge[1]]['weight'] for edge in pairwise(path)]
+            maxp = max(pathWeights)
+            minp = min(pathWeights)
+            if maxp > 0 and minp > 0: 
+                posPath = posPath + 1
+                
+        if posPath > 0 and w < 0:
+            return True            
+        
+    return False
+
 def InitRandom(width, maxValue=None, makeInt=None, makePeriodic=None):
     if maxValue is None:
         maxValue = 1

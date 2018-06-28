@@ -4,8 +4,8 @@ import networkx as nx
 import SegGraph as seg
 import VizGraph as viz
 import matplotlib.pyplot as plt
-import cvxopt as cvx
-from cvxopt import matrix
+#import cvxopt as cvx
+#from cvxopt import matrix
 
 def Minimize(G):
 
@@ -14,10 +14,10 @@ def Minimize(G):
 
     Q = np.zeros((nv, nv))
 
-    P = cvx.matrix(numpy.diag([1,0]), tc=’d’)
-    q = cvx.matrix(numpy.array([3,4]), tc=’d’)
-    G = cvx.matrix(numpy.array([[-1,0],[0,-1],[-1,-3],[2,5],[3,4]]), tc=’d’)
-    h = cvx.matrix(numpy.array([0,0,-15,100,80]), tc=’d’)
+    #P = cvx.matrix(numpy.diag([1,0]), tc=’d’)
+    #q = cvx.matrix(numpy.array([3,4]), tc=’d’)
+    #G = cvx.matrix(numpy.array([[-1,0],[0,-1],[-1,-3],[2,5],[3,4]]), tc=’d’)
+    #h = cvx.matrix(numpy.array([0,0,-15,100,80]), tc=’d’)
     
     
     #Q = [ [0] * nv for i in range(nv)] 
