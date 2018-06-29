@@ -8,6 +8,8 @@ import DsnTree as dsnTree
 import matplotlib.pyplot as plt
 import DsnNode as dsnNode
 import GraphCluster as gc
+import csv
+import pandas as pd
 
 def TestGraphCluster():
                 
@@ -38,7 +40,29 @@ def TestGraphCluster():
         print("LP: " + str(LPE))
         
         plt.show() 
-                        
+
+def DataGen(num_iter, width):
+    for i in range(num_iter):    
+        RG = syn.InitRandom(width)
+        CCLabels, CCE, param = dsnNode.Minimize(RG, nodeType='CC') 
+        WCLabels, WCE, param = dsnNode.Minimize(RG, nodeType='WC') 
+        KLLabels, KLE = gc.Minimize(RG, width, minType='kl')
+        LPLabels, LPE = gc.Minimize(RG, width, minType='lp')
+        yield {'CCE': CCE, 'WCE': WCE, 'KLE': KLE, 'LPE': LPE}
+
+def WriteData(datagen, filename = None):
+    if filename == None:
+        filename = 'tempdata.csv'
+    with open(filename, 'w', newline='') as csvfile:
+        fieldnames = ['CCE', 'WCE', 'KLE', 'LPE']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        num=0
+        for data in datagen:
+            num+=1
+            writer.writerow(data)
+    print(num)
+    
 
 
 def TestDSN():
@@ -61,5 +85,10 @@ def TestDSN():
 if __name__ == '__main__':
     print("Init")
     #TestDSN()
-    TestGraphCluster()
+    #TestGraphCluster()
+    WriteData(DataGen(num_iter = 100, width = 28))
+    data = 'tempdata.csv'
+    df = pd.read_csv(data)
+    df.plot.box()
+    plt.show()
     print("Exit")

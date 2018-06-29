@@ -26,5 +26,5 @@ G = nx.grid_2d_graph(range(3), range(4))
 for u, v, d in G.edges(data = True):
     d['weight'] = np.random.randint(-10, 10)
 
-utils.drawing(G)
-utils.drawing(utils.watershed_affinity(G.copy()))
+utils.DrawGraph(G,title = 'a')
+utils.DrawGraph(utils.watershed_affinity(G.copy()),title = 'b')

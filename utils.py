@@ -8,22 +8,21 @@ import time
 
 #some function definitions
 def drawing(G):
-    #pos specifies the location of each vertex to be drawn
+    #pos specifies the location of each vertex to be drawn\n",
     pos = {x: x for x in list(G)}
-    #this is to make the drawing region bigger
-    plt.figure(figsize=(4,4)) 
-    #drawing nodes
+    #this is to make the drawing region bigger\n",
+    plt.figure(figsize=(4,4))
+    #drawing nodes\n",
     colordict = {node:color for color,comp in enumerate(nx.connected_components(G)) for node in comp}
     nodecolor = [colordict[key] for key in sorted(colordict.keys())]
     nx.draw_networkx_nodes(G, pos, node_size=700, node_color = nodecolor, cmap = plt.cm.tab20c)
-    #drawing labels (locations) of the nodes
-    #nx.draw_networkx_labels(G, pos, nx.get_node_attributes(G,'intensity'))
-    nx.draw_networkx_labels(G, pos)
-    #drawing edges and theirs labels ('weight')
+    #drawing labels (locations) of the nodes\n",
+    nx.draw_networkx_labels(G, pos, nx.get_node_attributes(G,'intensity'))
+    #drawing edges and theirs labels ('weight')\n",
     nx.draw_networkx_edges(G, pos)
     labels = nx.get_edge_attributes(G, 'weight')
     nx.draw_networkx_edge_labels(G, pos, labels)
-    #show the drawing
+    #show the drawing\n",
     plt.axis('off')
     plt.show()
     
