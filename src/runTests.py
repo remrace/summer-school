@@ -2,47 +2,45 @@ import pickle
 import numpy as np
 import networkx as nx
 import SegGraph as seg
+import SynGraph as syn
 import VizGraph as viz
-import BansalSolver as bansal
 import matplotlib.pyplot as plt
 import DsnNode as dsnNode
-import CVXSolver as cvx
+import GraphCluster as gc
 
-def TestBest():
-        #for mySeed in range(100):
-        mySeed = 37
-        np.random.seed(mySeed)
-        rg = seg.InitRandom(3)
-
-        viz.DrawGraph(rg, title='original')    
-        print("Seed " + str(mySeed))
+def TestGraphCluster():
                 
-        bestEnergy, BL = cvx.Minimize(rg)
-
-        ## Best Labeling 
-        #bestEnergy, BL = seg.minimum_energy(rg)
-        #print("  Best Energy: " + str(bestEnergy))    
-        #viz.DrawGraph(BL, title='Best Labeling')      
-
-        #print("  Connected Components")
-        #labelsCC, paramsCC, energyCC = dsnNode.Minimize(rg, nodeType='CC')
-        #viz.DrawGraph(rg, labels=labelsCC, title='CC labels')
+        mySeed = 37
+        width = 3
         
-        #print("  WatershedCut")
-        #labelsWC, paramsWC, energyWC = dsnNode.Minimize(rg, nodeType='WC')                
-        #viz.DrawGraph(rg, labels=labelsWC, title='WC labels')
-        #print("  BE: " + str(bestEnergy))    
-        #print("  CC: " + str(energyCC))
-        #print(" WC: " + str(energyWC))
-        #plt.show()    
+        np.random.seed(mySeed)
+        #RG = syn.InitRandom(width)
+        RG = syn.InitSimple(width)
+        viz.DrawGraph(RG, title='original')    
 
+        CCLabels, CCE, param = dsnNode.Minimize(RG, nodeType='CC') 
+        viz.DrawGraph(RG, labels=CCLabels, title='CC labels')         
+
+        KLLabels, KLE = gc.Minimize(RG, width, minType='kl')
+        viz.DrawGraph(RG, labels=KLLabels, title='KL labels')         
+
+        LPLabels, LPE = gc.Minimize(RG, width, minType='lp')
+        viz.DrawGraph(RG, labels=LPLabels, title='LP labels')                 
+        
+        
+        print("CC: " + str(CCE))
+        print("KL: " + str(KLE))
+        print("LP: " + str(LPE))
+        
+        plt.show() 
+                        
 
 
 def TestWatershed():        
         mySeed = 0
         #for mySeed in range(100):
         np.random.seed(mySeed)
-        rg = seg.InitRandom(3)    
+        rg = syn.InitRandom(3)    
         viz.DrawGraph(rg, title='original')    
 
         orig = seg.FindFrustrated(rg)
@@ -64,7 +62,7 @@ def TestWatershed():
 
 def TestKruskal():
     #np.random.seed(1)
-    WG = seg.InitRandom(10, 1, False)        
+    WG = syn.InitRandom(10, 1, False)        
     viz.DrawGraph(WG, title='original')    
 
     # Get the labeling at threshold 0 and calculate energy
@@ -86,7 +84,7 @@ def TestKruskal():
     plt.show() 
 
 def TestBansal():
-    G = seg.InitRandom(10, makeInt=True)        
+    G = syn.InitRandom(10, makeInt=True)        
 
     WG = G.copy()    
     WG.remove_edges_from([(u,v) for (u,v,d) in  WG.edges(data=True) if d['weight'] < 0.0])
@@ -117,10 +115,10 @@ def TestBansal():
     print("Done")
 
 if __name__ == '__main__':
-    print("Init")
-    
-    TestWatershed()    
+        
+    #TestWatershed()    
     #TestKruskal()    
     #TestBansal()
     #TestBest()
-    print("Exit")
+    TestGraphCluster()
+    

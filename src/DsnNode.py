@@ -35,5 +35,5 @@ def Minimize(WG, nodeType=None):
 
 
     #print("DsnNode: Done")
-    return L, param, minE 
+    return L, minE, param
 

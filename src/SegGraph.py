@@ -6,25 +6,6 @@ import itertools#some function definitions
 
 DELTA_TOLERANCE = 1.0e-12
 
-def PartitionRecursive(collection):
-    if len(collection) == 1:
-        yield [ collection ]
-        return
-
-    first = collection[0]
-    for smaller in PartitionRecursive(collection[1:]):
-        # insert `first` in each of the subpartition's subsets
-        for n, subset in enumerate(smaller):
-            yield smaller[:n] + [[ first ] + subset]  + smaller[n+1:]
-        # put `first` in its own subset 
-        yield [ [ first ] ] + smaller
-
-
-def PartitionSet(theSet):
-    for n, p in enumerate(PartitionRecursive(theSet), 1):
-        yield p
-
-
 def powerset(iterable):
     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
     s = list(iterable)
@@ -81,25 +62,6 @@ def FindFrustrated(G):
             return True            
         
     return False
-
-def InitRandom(width, maxValue=None, makeInt=None, makePeriodic=None):
-    if maxValue is None:
-        maxValue = 1
-    if makeInt is None:
-        makeInt = False
-    if makePeriodic is None:
-        makePeriodic = False
-
-    G = nx.grid_2d_graph(range(width), range(width), periodic=makePeriodic)
-    for u, v, d in G.edges(data = True):
-        if makeInt:
-            d['weight'] = (np.random.randint(0, maxValue+1)*2 - maxValue)
-        else:
-            d['weight'] = (np.random.rand()*2.0 - 1.0) * maxValue
-        #if d['weight'] == 0:
-        #    d['weight'] = np.random.randint(0, 1) * 2 - 1        
-    
-    return G
 
 def GetLabelsAtThreshold(G,theta=0):
     lg = G.copy()    

@@ -17,14 +17,14 @@ def Minimize(WG, numSteps=None):
     labels = dict()
     energy = dict()
     
-    labels[0], params[0], energy[0] = dsnNode.Minimize(WG)
+    labels[0], energy[0], params[0] = dsnNode.Minimize(WG)
 
 
     finalLabels = labels[0]
     finalEnergy = energy[0]
 
     print("DsnTree: Done")
-    return finalLabels, params, finalEnergy
+    return finalLabels, finalEnergy, params
 
 
 
