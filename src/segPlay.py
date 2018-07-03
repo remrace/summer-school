@@ -10,7 +10,9 @@ import DsnNode as dsnNode
 import GraphCluster as gc
 import csv
 import pandas as pd
-
+from time import time
+from PIL import Image
+from PIL import ImageOps
 def TestGraphCluster():
                 
         mySeed = 37
@@ -86,9 +88,43 @@ if __name__ == '__main__':
     print("Init")
     #TestDSN()
     #TestGraphCluster()
-    WriteData(DataGen(num_iter = 100, width = 28))
+    """
+    WriteData(DataGen(num_iter = 100, width = 10))
     data = 'tempdata.csv'
     df = pd.read_csv(data)
     df.plot.box()
     plt.show()
+    """
+    im = Image.open('image.jpg').convert("L").crop((150,150,200,200))
+    #op = ImageOps.autocontrast(im, cutoff = 30)
+
+    print('reading image and convert to graph...')
+    G = syn.image_to_graph(im)
+    print('done')  
+    
+    print('CCLabels')
+    CCLabels, CCE, param = dsnNode.Minimize(G, nodeType='CC')
+    print('done')
+    print('WCLabels')
+    WCLabels, WCE, param = dsnNode.Minimize(G, nodeType='WC')
+    
+    print('done')
+    #print('KLLabels')
+    #KLLabels, KLE = gc.Minimize(G, 20, minType='kl')
+    #print('done')
+    print('LPLabels')
+    LPLabels, LPE = gc.Minimize(G, 50, minType='lp')
+    print('done')
+    
+    viz.viz_segment(CCLabels, title = 'CCLabels')
+    viz.viz_segment(WCLabels, title = 'WCLabels')
+    #viz.viz_segment(KLLabels, title = 'KLLabels')
+    viz.viz_segment(LPLabels, title = 'LPLabels')
+
+    print("CC: " + str(CCE))
+    print("WC: " + str(WCE))
+    #print("KL: " + str(KLE))
+    print("LP: " + str(LPE))
+
+    plt.show() 
     print("Exit")

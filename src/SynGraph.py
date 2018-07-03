@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 import itertools#some function definitions
+from PIL import Image
+import matplotlib.image as mpimg
+
 
 DELTA_TOLERANCE = 1.0e-12
 
@@ -58,3 +61,27 @@ def PartitionRecursive(collection):
 def PartitionSet(theSet):
     for n, p in enumerate(PartitionRecursive(theSet), 1):
         yield p
+
+#-----------------------------------------------
+
+def image_to_graph(image):
+    img = mpimg.pil_to_array(image)
+    plt.figure(figsize=(4,4))
+    plt.imshow(img, cmap='gray')
+    G = nx.grid_2d_graph(img.shape[0], img.shape[1])
+    nx.set_node_attributes(G,{u:{'intensity':v} for u,v in np.ndenumerate(img)})
+    for u, v, d in G.edges(data = True):
+        d['weight'] = int(np.percentile(img,5)) - abs(np.subtract(int(img[u]), int(img[v]))) + 0.5
+    return G
+
+def viz_segment(label, size_X = None, size_Y = None):
+    #get the size
+    if (size_X == None or size_Y == None):
+        size_X = 1 + max([coord[0] for coord in label.keys()])
+        size_Y = 1 + max([coord[1] for coord in label.keys()])
+    I = np.zeros((size_X,size_Y))
+    for coord, z in label.items():
+        I[coord] = z
+    #plt.figure(figsize=(4,4))
+    #plt.imshow(I, cmap = 'hot')
+    print (I)

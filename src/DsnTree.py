@@ -5,7 +5,7 @@ import SegGraph as seg
 import VizGraph as viz
 import DsnNode as dsnNode
 import matplotlib.pyplot as plt
-
+import itertools
 
 def Minimize(WG, numSteps=None):
     
@@ -26,5 +26,18 @@ def Minimize(WG, numSteps=None):
     print("DsnTree: Done")
     return finalLabels, finalEnergy, params
 
+def next_WG(WG, labels):
+    H = nx.Graph()
+    for x, y in itertools.combinations(set(labels.values()),2):
+        if segments_is_connected(WG, labels, x, y):
 
 
+
+#find out if two labels is connected
+#inputs: the graph G, 2 segments (2 integers)
+def segments_is_connected(G, labels, x, y):
+    nodes_x = [node for node,color in labels.items() if color == x]
+    nodes_y = [node for node,color in labels.items() if color == y]
+    return any([G.has_edge(u,v) for u,v in itertools.product(nodes_x,nodes_y)])
+
+#find average 

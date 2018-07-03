@@ -1,0 +1,4 @@
+TRACE dadaInt - Application started
+TRACE dadaInt - Parsed command line
+INFO  dadaInt - Successfully imported graph
+TRACE dadaInt - Application exiting

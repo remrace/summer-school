@@ -26,7 +26,7 @@ def DrawGraph(G, labels=None, title=None, figSize=None, nodeSize=None):
         
     nx.draw_networkx_nodes(G, pos, node_size = nodeSize, node_color = nodecolor, cmap = plt.cm.tab20c)
     #drawing labels (locations) of the nodes
-    #nx.draw_networkx_labels(G, pos, nx.get_node_attributes(G,'intensity'))
+    nx.draw_networkx_labels(G, pos, nx.get_node_attributes(G,'intensity'))
     if labels is not None:
         nx.draw_networkx_labels(G, pos, labels, font_size=6) 
     #drawing edges and theirs labels ('weight')
@@ -38,6 +38,20 @@ def DrawGraph(G, labels=None, title=None, figSize=None, nodeSize=None):
     nx.draw_networkx_edge_labels(G, pos, labels, font_size=8)
     
     plt.axis('off')    
+    if title is not None:
+        fig = plt.gcf()
+        fig.canvas.set_window_title(title)
+
+def viz_segment(label, title = None, size_X = None, size_Y = None):
+    #get the size
+    if (size_X == None or size_Y == None):
+        size_X = 1 + max([coord[0] for coord in label.keys()])
+        size_Y = 1 + max([coord[1] for coord in label.keys()])
+    I = np.zeros((size_X,size_Y))
+    for coord, z in label.items():
+        I[coord] = z
+    plt.figure(figsize=(4,4))
+    plt.imshow(I, cmap = 'tab20c')
     if title is not None:
         fig = plt.gcf()
         fig.canvas.set_window_title(title)
