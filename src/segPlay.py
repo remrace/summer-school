@@ -41,6 +41,24 @@ def TestGraphCluster():
         
         plt.show() 
 
+def TestWS():
+
+    mySeed = 37
+    width = 10
+        
+    np.random.seed(mySeed)
+    RG = syn.InitRandom(width)
+    #RG = syn.InitSimple(width)
+    viz.DrawGraph(RG, title='original')    
+
+    WCLabels, WCE, param = dsnNode.Minimize(RG, nodeType='WS') 
+    viz.DrawGraph(RG, labels=WCLabels, title='WC labels')         
+
+    NG, pos = dsnNode.InitGraph(RG, WCLabels)
+    viz.Draw2ndGraph(NG, pos, title='2nd Layer')         
+    plt.show() 
+
+
 def DataGen(num_iter, width):
     for i in range(num_iter):    
         RG = syn.InitRandom(width)
@@ -63,7 +81,12 @@ def WriteData(datagen, filename = None):
             writer.writerow(data)
     print(num)
     
-
+def RunExp():
+    WriteData(DataGen(num_iter = 100, width = 28))
+    data = 'tempdata.csv'
+    df = pd.read_csv(data)
+    df.plot.box()
+    plt.show()
 
 def TestDSN():
     #np.random.seed(1)
@@ -86,9 +109,6 @@ if __name__ == '__main__':
     print("Init")
     #TestDSN()
     #TestGraphCluster()
-    WriteData(DataGen(num_iter = 100, width = 28))
-    data = 'tempdata.csv'
-    df = pd.read_csv(data)
-    df.plot.box()
-    plt.show()
+    TestWS()
+    #RunExp()
     print("Exit")
