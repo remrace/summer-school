@@ -79,3 +79,19 @@ def Draw2ndGraph(G, pos, labels=None, title=None, figSize=None, nodeSize=None):
     if title is not None:
         fig = plt.gcf()
         fig.canvas.set_window_title(title)
+
+
+#given a label (dict), visualize as image
+def viz_segment(label, title = None, size_X = None, size_Y = None):
+    #get the size
+    if (size_X == None or size_Y == None):
+        size_X = 1 + max([coord[0] for coord in label.keys()])
+        size_Y = 1 + max([coord[1] for coord in label.keys()])
+    I = np.zeros((size_X,size_Y))
+    for coord, z in label.items():
+        I[coord] = z
+    plt.figure(figsize=(4,4))
+    plt.imshow(I, cmap = 'tab20c')
+    if title is not None:
+        fig = plt.gcf()
+        fig.canvas.set_window_title(title)

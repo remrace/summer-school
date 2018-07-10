@@ -156,3 +156,54 @@ def FindMinEnergyThreshold(WG, eval=None):
         
     #print("Lowest Energy: " + str(lowE) + " at threshold " + str(lowThreshold)) 
     return(lowT, lowE)
+
+#----------------------------
+
+def GentleThreshold(G):
+    #find the bigest threshold that will split the graph
+    lg = G.copy()
+    
+    for t in sorted(set([w for (u,v,w) in G.edges(data = 'weight')]),reverse = True):
+        lg.remove_edges_from([(u,v) for (u,v,d) in G.edges(data=True) if d['weight']<t])
+        if nx.number_connected_components(lg) < 50:
+            break
+        else:
+            lg = G.copy()
+    
+    label = {node:color for color,comp in enumerate(nx.connected_components(lg)) for node in comp}
+    subgraphs = [G.subgraph(c).copy() for c in nx.connected_components(lg)]
+    return label, subgraphs
+
+
+def MultiGentleThreshold(G, subgraphs):
+    #subgraphs have unique nodes from original graph G
+    max_label = 0
+    label = {}
+    S_comp = []
+    for graph in subgraphs:
+        L,S = GentleThreshold(graph)
+        L.update((k,v+max_label+1) for k,v in L.items())
+        label = {**label, **L}
+        max_label = max(list(label.values()))
+        S_comp.extend(S)
+    return label, S_comp
+
+def MultiMultiGentleThreshold(G, steps = None):
+    if steps == None:
+        steps = 5
+
+    subgraphs = [G]
+    labels = []
+
+    for i in range(steps):
+        label, subgraphs = MultiGentleThreshold(G, subgraphs)
+        labels.append(label)
+    return labels
+
+
+#find out if two labels is connected
+#inputs: the graph G, 2 segments (2 integers)
+def segments_is_connected(G, labels, x, y):
+    nodes_x = [node for node,color in labels.items() if color == x]
+    nodes_y = [node for node,color in labels.items() if color == y]
+    return any([G.has_edge(u,v) for u,v in itertools.product(nodes_x,nodes_y)])
