@@ -10,7 +10,7 @@ import DsnNode as dsnNode
 import GraphCluster as gc
 import csv
 import pandas as pd
-
+import PIL.Image as Image
 def TestGraphCluster():
                 
         mySeed = 37
@@ -109,6 +109,19 @@ if __name__ == '__main__':
     print("Init")
     #TestDSN()
     #TestGraphCluster()
-    TestWS()
+    #TestWS()
     #RunExp()
+
+    image = Image.open('images.jpeg').convert("L")
+    print('converting to graph...')
+    G = syn.InitImage(image)
+    print('done')
+
+    print('getting label...')
+    labels = seg.multi_spanning(G,steps = 20)
+    print('done')
+    for label in labels[-7:]:
+        viz.viz_segment(label)
+
+    plt.show()
     print("Exit")
