@@ -62,7 +62,7 @@ def InitImage(image):
     #nx.set_node_attributes(G,{u:{'intensity':v} for u,v in np.ndenumerate(img)})
     
     for u, v, d in G.edges(data = True):
-        d['weight'] = -abs(np.subtract(int(img[u]), int(img[v]))) + 0.5
+        d['weight'] = 20 - abs(np.subtract(int(img[u]), int(img[v]))) + 0.5
     
     return G
 

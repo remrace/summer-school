@@ -228,24 +228,32 @@ def spanning_forest_2(G, H):
         if label[u] != label[v] and all([label[u] not in seen_label, label[v] not in seen_label]):
             H.add_edge(u, v, weight = w)
             seen_label.update([label[u], label[v]])
-    #label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp} 
+    label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp} 
+    print('num of classes: ', max(label.values())+1)
     return H
 
-def multi_spanning(G, steps = 5):
+def multi_spanning(G, steps=None):
     H = spanning_forest(G)
     label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
     labels = [label]
-    for i in range(steps - 1):
-        H = spanning_forest_2(G,H)
-        labels.append({node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp})
+    if steps:
+        for i in range(steps - 1):
+            H = spanning_forest_2(G,H)
+            cut_in_each_segment(H)
+            label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
+            labels.append(label)
+    else:
+        while max(label.values()) > 50:
+            H = spanning_forest_2(G,H)
+            cut_in_each_segment(H)
+            label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
+            labels.append(label)
     return labels
 
-def min_cut(G):
-    H = G.copy()
-    for u,v,w in sorted(G.edges(data='weight'), key=lambda x:x[2]):
-        H.remove_edge(u,v)
-        print('cutting edge', u ,v ,w)
-        if nx.number_connected_components(H) > 50:
-            break
-    label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
-    return label
+def cut_in_each_segment(H):
+    for c in nx.connected_components(H):
+        if len(c) > 30:
+            segG = H.subgraph(c)
+            u,v,w = min(segG.edges(data='weight'), key=lambda x:x[2])
+            H.remove_edge(u,v)
+    return H

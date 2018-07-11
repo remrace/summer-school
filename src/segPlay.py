@@ -111,17 +111,37 @@ if __name__ == '__main__':
     #TestGraphCluster()
     #TestWS()
     #RunExp()
-
-    image = Image.open('images.jpeg').convert("L")
+    '''
+    image = Image.open('image.jpg').convert("L")
     print('converting to graph...')
     G = syn.InitImage(image)
     print('done')
 
     print('getting label...')
-    labels = seg.multi_spanning(G,steps = 20)
+    labels = seg.multi_spanning(G,steps=200)
     print('done')
-    for label in labels[-7:]:
+    for label in labels[-10:]:
         viz.viz_segment(label)
+    
+    pickle.dump( labels, open( "save.p", "wb" ) )
 
+    with open('tempdata1.csv', 'r', newline='') as csvfile:
+        fieldnames = ['nClasses', 'energy']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for label in labels:
+            data = {'nClasses': max(label.values())+1, 'energy': seg.GetLabelEnergy(G,label)}
+            writer.writerow(data)
+    plt.show()
+    '''
+    image = Image.open('image.jpg').convert("L")
+    print('converting to graph...')
+    G = syn.InitImage(image)
+    print('done')
+    labels = pickle.load( open( "save.p", "rb" ) )
+    df = pd.DataFrame({'num' : [max(label.values())+1 for label in labels],
+                        'energy' : [seg.GetLabelEnergy(G,label) for label in labels]})
+    print(df)
+    df.plot()
     plt.show()
     print("Exit")
