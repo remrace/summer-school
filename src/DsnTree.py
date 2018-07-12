@@ -7,24 +7,23 @@ import DsnNode as dsnNode
 import matplotlib.pyplot as plt
 
 
-def Minimize(WG, numSteps=None):
+def Minimize(RG, treeType=None):
     
-    if numSteps is None:
-        numSteps = 1
+    if treeType is None:
+        treeType = 'WS'
     
-    print("DsnTree: Minimizing...")
-    params = dict()
-    labels = dict()
-    energy = dict()
+
+    if treeType == 'WS':
+        WCLabels, WCE, param = dsnNode.Minimize(RG, nodeType='WS') 
+        #viz.DrawGraph(RG, labels=WCLabels, title='WC labels')         
+
+        NG, pos = dsnNode.InitGraph(RG, WCLabels)
+        #viz.Draw2ndGraph(NG, pos, title='2nd Layer')         
+
+        finalLabels, finalE, finalP = dsnNode.FindBestThreshold(NG, RG, WCLabels)
+        
     
-    labels[0], energy[0], params[0] = dsnNode.Minimize(WG)
-
-
-    finalLabels = labels[0]
-    finalEnergy = energy[0]
-
-    print("DsnTree: Done")
-    return finalLabels, finalEnergy, params
+    return finalLabels, finalE, finalP
 
 
 

@@ -13,10 +13,10 @@ import pandas as pd
 
 def TestGraphCluster():
                 
-        mySeed = 37
+        #mySeed = 37
         width = 10
         
-        np.random.seed(mySeed)
+        #np.random.seed(mySeed)
         RG = syn.InitRandom(width)
         #RG = syn.InitSimple(width)
         viz.DrawGraph(RG, title='original')    
@@ -27,19 +27,23 @@ def TestGraphCluster():
         WCLabels, WCE, param = dsnNode.Minimize(RG, nodeType='WC') 
         viz.DrawGraph(RG, labels=WCLabels, title='WC labels')         
 
-        KLLabels, KLE = gc.Minimize(RG, width, minType='kl')
-        viz.DrawGraph(RG, labels=KLLabels, title='KL labels')         
-
-        LPLabels, LPE = gc.Minimize(RG, width, minType='lp')
-        viz.DrawGraph(RG, labels=LPLabels, title='LP labels')                 
-        
-        
+        WSLabels, WSE, param = dsnTree.Minimize(RG, treeType='WS') 
+        viz.DrawGraph(RG, labels=WSLabels, title='WS labels')         
+   
         print("CC: " + str(CCE))
         print("WC: " + str(WCE))
-        print("KL: " + str(KLE))
-        print("LP: " + str(LPE))
+        print("WS: " + str(WSE))
+
+        #KLLabels, KLE = gc.Minimize(RG, width, minType='kl')
+        #viz.DrawGraph(RG, labels=KLLabels, title='KL labels')         
+
+        #LPLabels, LPE = gc.Minimize(RG, width, minType='lp')
+        #viz.DrawGraph(RG, labels=LPLabels, title='LP labels')                         
+     
+        #print("KL: " + str(KLE))
+        #print("LP: " + str(LPE))
         
-        plt.show() 
+        #plt.show() 
 
 def TestWS():
 
@@ -56,6 +60,10 @@ def TestWS():
 
     NG, pos = dsnNode.InitGraph(RG, WCLabels)
     viz.Draw2ndGraph(NG, pos, title='2nd Layer')         
+
+    CCLabels, CCE, param = dsnNode.FindBestThreshold(NG, RG, WCLabels)
+    viz.DrawGraph(RG, labels=CCLabels, title='CC labels')         
+
     plt.show() 
 
 
@@ -108,7 +116,7 @@ def TestDSN():
 if __name__ == '__main__':
     print("Init")
     #TestDSN()
-    #TestGraphCluster()
-    TestWS()
+    TestGraphCluster()
+    #TestWS()
     #RunExp()
     print("Exit")

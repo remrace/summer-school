@@ -6,6 +6,8 @@ import VizGraph as viz
 import matplotlib.pyplot as plt
 
 
+DELTA_TOLERANCE = 1.0e-12
+
 def Minimize(WG, nodeType=None):
     
     if nodeType is None:
@@ -44,6 +46,32 @@ def Minimize(WG, nodeType=None):
 
     #print("DsnNode: Done")
     return L, minE, param
+
+def FindBestThreshold(NG, RG, WCLabels):
+
+    edgeWeights = [(u,v,w) for (u,v,w) in NG.edges(data = 'weight')]    
+    sortedEdges = sorted(edgeWeights, reverse=True, key=lambda edge: edge[2])
+    
+    bestL = WCLabels.copy()
+    bestE = seg.GetLabelEnergy(RG, bestL)
+    bestT = sortedEdges[0][2] + DELTA_TOLERANCE
+    print("E = " + str(bestE) + " from T = " + str(bestT))
+
+    for e in sortedEdges:
+        t = e[2] - DELTA_TOLERANCE
+        L = seg.GetLabelsAtThreshold(NG,theta=t)
+        lowerL = WCLabels.copy()
+        for n in lowerL:
+            lowerL[n] = L[ lowerL[n] ]
+        
+        lowerE = seg.GetLabelEnergy(RG, lowerL)
+        if lowerE < bestE:
+            bestE = lowerE
+            bestL = lowerL.copy()
+            bestT = t 
+            print("E = " + str(bestE) + " from T = " + str(bestT))  
+
+    return bestL, bestE, bestT
 
 
 def InitGraph(WG, L, initType=None):
@@ -118,7 +146,7 @@ def InitGraph(WG, L, initType=None):
             if (u not in nodeMax) and (v not in nodeMax):
                 highest = 0
 
-            d['weight'] = edgeMax[(u,v)] - highest
+            d['weight'] = edgeMax[(u,v)]  # - highest
 
         pos = dict()
 
