@@ -207,3 +207,53 @@ def segments_is_connected(G, labels, x, y):
     nodes_x = [node for node,color in labels.items() if color == x]
     nodes_y = [node for node,color in labels.items() if color == y]
     return any([G.has_edge(u,v) for u,v in itertools.product(nodes_x,nodes_y)])
+
+#spanning forest
+def spanning_forest(G):
+    print('spanning_forest....')
+    H = nx.Graph()
+    H.add_nodes_from(G)
+    for u,v,w in sorted(G.edges(data='weight'), key=lambda x:x[2], reverse=True):
+        if not(H.has_node(u) or H.has_node(v)):
+            H.add_edge(u, v, weight = w)
+    #label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
+    #subgraphs = [G.subgraph(c).copy() for c in nx.connected_components(H)]
+    return H
+
+def spanning_forest_2(G, H):
+    print('spanning_forest_2....')
+    label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
+    seen_label = set()
+    for u,v,w in sorted(G.edges(data='weight'), key=lambda x:x[2], reverse=True):
+        if label[u] != label[v] and all([label[u] not in seen_label, label[v] not in seen_label]):
+            H.add_edge(u, v, weight = w)
+            seen_label.update([label[u], label[v]])
+    label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp} 
+    print('num of classes: ', max(label.values())+1)
+    return H
+
+def multi_spanning(G, steps=None):
+    H = spanning_forest(G)
+    label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
+    labels = [label]
+    if steps:
+        for i in range(steps - 1):
+            H = spanning_forest_2(G,H)
+            cut_in_each_segment(H)
+            label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
+            labels.append(label)
+    else:
+        while max(label.values()) > 50:
+            H = spanning_forest_2(G,H)
+            cut_in_each_segment(H)
+            label = {node:color for color,comp in enumerate(nx.connected_components(H)) for node in comp}
+            labels.append(label)
+    return labels
+
+def cut_in_each_segment(H):
+    for c in nx.connected_components(H):
+        if len(c) > 30:
+            segG = H.subgraph(c)
+            u,v,w = min(segG.edges(data='weight'), key=lambda x:x[2])
+            H.remove_edge(u,v)
+    return H

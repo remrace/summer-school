@@ -57,12 +57,12 @@ def InitImage(image):
     #image = Image.open('image.jpg').convert("L")
     img = mpimg.pil_to_array(image)
     plt.figure(figsize=(4,4))
-    #plt.imshow(img, cmap='gray')
+    plt.imshow(img, cmap='gray')
     G = nx.grid_2d_graph(img.shape[0], img.shape[1])
-    nx.set_node_attributes(G,{u:{'intensity':v} for u,v in np.ndenumerate(img)})
+    #nx.set_node_attributes(G,{u:{'intensity':v} for u,v in np.ndenumerate(img)})
     
     for u, v, d in G.edges(data = True):
-        d['weight'] = int(np.percentile(img,5)) - abs(np.subtract(int(img[u]), int(img[v]))) + 0.5
+        d['weight'] = 20 - abs(np.subtract(int(img[u]), int(img[v]))) + 0.5
     
     return G
 
