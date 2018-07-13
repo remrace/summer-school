@@ -131,7 +131,7 @@ if __name__ == '__main__':
     #TestWS()
     #RunExp()
     
-    image = Image.open('s1.bmp').convert("L")
+    image = Image.open('./synimage/noise/s1.png').convert("L")
     print('converting to graph...')
     G = syn.InitImage(image)
     print('done')
