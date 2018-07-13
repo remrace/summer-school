@@ -11,6 +11,7 @@ import GraphCluster as gc
 import csv
 import pandas as pd
 import PIL.Image as Image
+import os
 def TestGraphCluster():
                 
         #mySeed = 37
@@ -113,6 +114,15 @@ def TestDSN():
 
     plt.show() 
 
+def getGroundTruths():
+    #Ground truth got from using LP on simple original images
+    #labels is a dict of 'image':label
+    labels = pickle.load( open( "./synimage/groundtruth/save.p", "rb" ) )
+    #TestExample
+    #viz.viz_segment(label=labels['s10.bmp'])
+    #plt.show()
+    return labels
+
 if __name__ == '__main__':
     print("Init")
     #TestDSN()
@@ -120,37 +130,15 @@ if __name__ == '__main__':
     #TestGraphCluster()
     #TestWS()
     #RunExp()
-    '''
-    image = Image.open('image.jpg').convert("L")
-    print('converting to graph...')
-    G = syn.InitImage(image)
-    print('done')
-
-    print('getting label...')
-    labels = seg.multi_spanning(G,steps=200)
-    print('done')
-    for label in labels[-10:]:
-        viz.viz_segment(label)
     
-    pickle.dump( labels, open( "save.p", "wb" ) )
-
-    with open('tempdata1.csv', 'r', newline='') as csvfile:
-        fieldnames = ['nClasses', 'energy']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for label in labels:
-            data = {'nClasses': max(label.values())+1, 'energy': seg.GetLabelEnergy(G,label)}
-            writer.writerow(data)
-    plt.show()
-    '''
-    image = Image.open('image.jpg').convert("L")
+    image = Image.open('s1.bmp').convert("L")
     print('converting to graph...')
     G = syn.InitImage(image)
     print('done')
-    labels = pickle.load( open( "save.p", "rb" ) )
-    df = pd.DataFrame({'num' : [max(label.values())+1 for label in labels],
-                        'energy' : [seg.GetLabelEnergy(G,label) for label in labels]})
-    print(df)
-    df.plot()
+
+    LPLabels, LPE = gc.Minimize(G, 100, minType='lp')
+    viz.viz_segment(LPLabels)
+    
     plt.show()
+   
     print("Exit")
