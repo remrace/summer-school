@@ -41,11 +41,21 @@ def SynTestData(numFeatures, numSamples, plotme = None):
     return(X_train, Y_train)
 
 def rand_loss_function(YT, YP):
+    # Need to get from YP to A
     #G = syn.InitWithAffinities(GRAPH_WIDTH, GRAPH_HEIGHT, A)
-    #[posCounts, negCounts, mstEdges] = ev.FindRandCounts(G, AGT)
-    #randW = numpy array (posCounts - negCounts)
-    #edge_loss = tf.square(tf.subtract(y_true, y_pred))
+
+    # Needs the GT on nodes (labeling) 
+    #[posCounts, negCounts, mstEdges] = ev.FindRandCounts(G, GT)
+    
+    # Need to get counts into a TF matrix of weights
+    #randW = numpy array (posCounts - negCounts) / totalWeight
+
+    # YT need to be ground truth for edges...
+    #edge_loss = tf.square(tf.subtract(YT, YP))
+    
+    # I think if all the pieces are tensorflow, gradient could be automatic..
     #return tf.reduce_sum(tf.multiply(randW, edge_loss))
+
     return tf.squared_difference(YT, YP)
 
 def test_loss(YT, YP):
