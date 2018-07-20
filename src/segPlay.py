@@ -131,14 +131,33 @@ if __name__ == '__main__':
     #TestWS()
     #RunExp()
     
-    image = Image.open('./synimage/noise/s1.png').convert("L")
+    image = Image.open('./synimage/original/s74.bmp').convert("L")
     print('converting to graph...')
     G = syn.InitImage(image)
     print('done')
 
-    LPLabels, LPE = gc.Minimize(G, 100, minType='lp')
-    viz.viz_segment(LPLabels)
+    print('CC...')
+    CCLabels, CCE, param = dsnNode.Minimize(G, nodeType='CC') 
     
+    print('WC...')
+    WCLabels, WCE, param = dsnNode.Minimize(G, nodeType='WC') 
+    
+    #print('KL...')
+    #KLLabels, KLE = gc.Minimize(G, 100, minType='kl')
+    
+    print('LP...')
+    LPLabels, LPE = gc.Minimize(G, 100, minType='lp')
+    
+    print("CCE: " + str(CCE))
+    print("WCE: " + str(WCE))
+    #print("KLE: " + str(KLE))
+    print("LPE: " + str(LPE))
+
+    viz.viz_segment(label=CCLabels, title='CC')
+    viz.viz_segment(label=WCLabels, title='WC')
+    #viz.viz_segment(label=KLLabels, title='KL')
+    viz.viz_segment(label=LPLabels, title='LP')
+
     plt.show()
    
     print("Exit")
