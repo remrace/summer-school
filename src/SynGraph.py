@@ -8,6 +8,17 @@ from PIL import Image
 DELTA_TOLERANCE = 1.0e-12
 
 
+def InitWithAffinities(width, height, A):
+
+    G = nx.grid_2d_graph(range(width), range(height))
+
+    for i in range(width):
+        for j in range(height):
+            G[i][j]['weight'] = A[i, j]
+                 
+    return G
+
+
 def InitSimple(width, noiseMag = None):
     if noiseMag is None:
         noiseMag = 0.1

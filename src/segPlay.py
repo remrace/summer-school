@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 import networkx as nx
 import SegGraph as seg
+import SegEval as ev
 import SynGraph as syn
 import VizGraph as viz
 import DsnTree as dsnTree
@@ -12,6 +13,52 @@ import csv
 import pandas as pd
 import PIL.Image as Image
 import os
+
+
+def TestRand():
+                
+        mySeed = 37
+        width = 3
+        
+        np.random.seed(mySeed)
+        RG = syn.InitRandom(width)
+        #RG = syn.InitSimple(width)
+        viz.DrawGraph(RG, title='original')    
+        
+        myLabels = dict()
+        i = 1
+        for n in RG:        
+            myLabels[n] = i
+            i = i + 1        
+        
+        viz.DrawGraph(RG, labels=myLabels, title='Ind labels')         
+
+        #CCLabels, CCE, param = dsnNode.Minimize(RG, nodeType='CC') 
+        #viz.DrawGraph(RG, labels=CCLabels, title='CC labels')         
+
+        (posCounts, negCounts, mstEdges) = ev.FindRandCounts(RG, myLabels)
+        plt.show() 
+
+
+def TestEnergyRand():
+                
+        mySeed = 37
+        width = 3
+        
+        np.random.seed(mySeed)
+        RG = syn.InitRandom(width)
+        #RG = syn.InitSimple(width)
+        viz.DrawGraph(RG, title='original')    
+
+        CCLabels, CCE, param = dsnNode.Minimize(RG, nodeType='CC') 
+        viz.DrawGraph(RG, labels=CCLabels, title='CC labels')         
+        print(param)
+        
+        (thresh, bestE, posCounts, negCounts, mstEdges, mstEdgeWeights) = ev.FindMinEnergyAndRandCounts(RG, CCLabels)
+        print("Energy: " + str(bestE) + " at threshold " + str(thresh))         
+        plt.show() 
+
+
 def TestGraphCluster():
                 
         #mySeed = 37
@@ -22,8 +69,6 @@ def TestGraphCluster():
         #RG = syn.InitSimple(width)
         viz.DrawGraph(RG, title='original')    
 
-        CCLabels, CCE, param = dsnNode.Minimize(RG, nodeType='CC') 
-        viz.DrawGraph(RG, labels=CCLabels, title='CC labels')         
 
         WCLabels, WCE, param = dsnNode.Minimize(RG, nodeType='WC') 
         viz.DrawGraph(RG, labels=WCLabels, title='WC labels')         
@@ -123,6 +168,7 @@ def getGroundTruths():
     #plt.show()
     return labels
 
+<<<<<<< HEAD
 if __name__ == '__main__':
     print("Init")
     #TestDSN()
@@ -132,6 +178,10 @@ if __name__ == '__main__':
     #RunExp()
     
     image = Image.open('./synimage/original/s74.bmp').convert("L")
+=======
+def LP_GT():
+    image = Image.open('./synimage/noise/s1.png').convert("L")
+>>>>>>> 0c1f99f990d0c4c4384f9a1d4abd3038bed0c5dd
     print('converting to graph...')
     G = syn.InitImage(image)
     print('done')
@@ -160,4 +210,14 @@ if __name__ == '__main__':
 
     plt.show()
    
+
+if __name__ == '__main__':
+    print("Init")
+    #TestDSN()
+    #TestGraphCluster()
+    #TestGraphCluster()
+    #TestWS()
+    #RunExp()
+    #TestRand()
+    TestEnergyRand()
     print("Exit")
