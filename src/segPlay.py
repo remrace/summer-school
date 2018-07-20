@@ -54,7 +54,7 @@ def TestEnergyRand():
         viz.DrawGraph(RG, labels=CCLabels, title='CC labels')         
         print(param)
         
-        (thresh, bestE, posCounts, negCounts, mstEdges) = ev.FindMinEnergyAndRandCounts(RG, CCLabels)
+        (thresh, bestE, posCounts, negCounts, mstEdges, mstEdgeWeights) = ev.FindMinEnergyAndRandCounts(RG, CCLabels)
         print("Energy: " + str(bestE) + " at threshold " + str(thresh))         
         plt.show() 
 

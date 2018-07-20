@@ -141,7 +141,7 @@ def FindRandCounts(WG, gtLabels):
             mySets.union(u, v)
             labelCount[ mySets[u] ] = allLabels.copy()
 
-    print(mstEdges)    
+    #print(mstEdges)    
     print("Total Pos: " + str(totalPos) + " Neg: " + str(totalNeg)) 
     return(posCounts, negCounts, mstEdges)
 
@@ -249,16 +249,15 @@ def FindBestRandThreshold(posCounts, negCounts, mstEdges, mstEdgeWeights):
 	
     totalPos = sum(posCounts) 
     totalNeg = sum(negCounts)
-    
-    localPos = totalPos; 
-	localNeg = 0.0; 
-    
+    localPos = totalPos
+    localNeg = 0.0
+
     # start off with every point in own cluster
     lowE = (localPos + localNeg) / (totalPos + totalNeg)
     lowT = mstEdgeWeights[0] + DELTA_TOLERANCE
     
     for i in range(len(posCounts)):
-		localPos = localPos - posCounts[i]
+        localPos = localPos - posCounts[i]
         localNeg = localNeg + negCounts[i]
 
         newError = (localPos + localNeg) / (totalPos + totalNeg)

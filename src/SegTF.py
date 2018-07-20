@@ -5,18 +5,11 @@ import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
+import SegEval as ev
+import SynGraph as syn
 
-
-def rand_loss_function(y_true, y_pred):
-    #n_features = X_values.shape[1]
-    #n_classes = len(set(y_flat))
-    weights_shape = (10, 1)
-
-    randW = tf.Variable(dtype=tf.float32, initial_value=tf.random_normal(weights_shape))  # Weights of the model
-
-    edge_loss = tf.square(tf.subtract(y_true, y_pred))
-
-    return tf.reduce_sum(tf.multiply(randW, edge_loss))
+GRAPH_WIDTH = 10
+GRAPH_HEIGHT = GRAPH_WIDTH
 
 def KerasTest():
     model = keras.Sequential()
@@ -32,67 +25,69 @@ def KerasTest():
     #          metrics=['accuracy'])
     
 
-def Test1():
+def SynTestData(numFeatures, numSamples, plotme = None):
 
-    X_values, y_flat = make_blobs(n_features=2, n_samples=800, centers=3, random_state=500)
-    y = OneHotEncoder().fit_transform(y_flat.reshape(-1, 1)).todense()
-    y = np.array(y)
+    X_train, Y_train = make_blobs(n_features=numFeatures, n_samples=numSamples, centers=2, random_state=500)
+    #Y_train = OneHotEncoder().fit_transform(y_flat.reshape(-1, 1)).todense()
+    #Y_train = np.array(Y_train)
     # Optional line: Sets a default figure size to be a bit larger.
-    plt.rcParams['figure.figsize'] = (24, 10)
-    plt.scatter(X_values[:,0], X_values[:,1], c=y_flat, alpha=0.4, s=150)
+    if plotme is not None:
+        plt.rcParams['figure.figsize'] = (24, 10)
+        plt.scatter(X_train[:,0], X_train[:,1], c=Y_train, alpha=0.4, s=150)
+        plt.show() 
 
-    X = tf.placeholder(dtype=tf.float32)
-    Y_true = tf.placeholder(dtype=tf.float32)
+    Y_train = Y_train * 2 - 1    
     
-    n_features = X_values.shape[1]
-    n_classes = 2
+    return(X_train, Y_train)
 
-    weights_shape = (n_features, n_classes)
+def rand_loss_function(YT, YP):
+    #G = syn.InitWithAffinities(GRAPH_WIDTH, GRAPH_HEIGHT, A)
+    #[posCounts, negCounts, mstEdges] = ev.FindRandCounts(G, AGT)
+    #randW = numpy array (posCounts - negCounts)
+    #edge_loss = tf.square(tf.subtract(y_true, y_pred))
+    #return tf.reduce_sum(tf.multiply(randW, edge_loss))
+    return tf.squared_difference(YT, YP)
+
+def test_loss(YT, YP):
+    return tf.squared_difference(YT, YP)
+        
+
+def Test1():
+    numFeatures = 2
+    numSamples = 200 
+    X_train, Y_train = SynTestData(numFeatures, numSamples, plotme = False)
+        
+    weights_shape = (numFeatures, 1) 
+    bias_shape = (1, 1)    
 
     W = tf.Variable(dtype=tf.float32, initial_value=tf.random_normal(weights_shape))  # Weights of the model
-    
-    #bias_shape = (1, n_classes)
-    #b = tf.Variable(dtype=tf.float32, initial_value=tf.random_normal(bias_shape))
-    Y_pred = tf.matmul(X, W)
+    b = tf.Variable(dtype=tf.float32, initial_value=tf.random_normal(bias_shape))
 
-    #loss_function = tf.losses.softmax_cross_entropy(Y_true, Y_pred)
-    loss_function = rand_loss_function(Y_true, Y_pred)
+    X = tf.placeholder(tf.float32, name="X")
+    Y = tf.placeholder(tf.float32, name="Y")
+    
+    YP = X * W + b
+    
+    loss_function = test_loss(Y, YP)
 
     learner = tf.train.GradientDescentOptimizer(0.1).minimize(loss_function)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(5000):
-            result = sess.run(learner, {X: X_train, Y_true: y_train})
-            if i % 100 == 0:
-                print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(loss_function, {X: X_test, Y_true: y_test})))
-        y_pred = sess.run(Y_pred, {X: X_test})
+        for i in range(50):
+            result = sess.run(learner, {X: X_train, Y: Y_train})
+            #if i % 100 == 0:
+            #print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(loss_function, {X: X_test, Y_true: y_test})))
+        y_pred = sess.run(Y_pred, {X: X_train})
         W_final, b_final = sess.run([W, b])
 
-    predicted_y_values = np.argmax(y_pred, axis=1)
-    predicted_y_values        
+    #predicted_y_values = np.argmax(y_pred, axis=1)
+    #predicted_y_values
+    print(W_final)
 
-    #potential other way to get loss in
-    ########### Defining place holders ############
-    ###############################################
-    #image_place = tf.placeholder(tf.float32, shape=([None, num_features]), name='image')
-    #label_place = tf.placeholder(tf.int32, shape=([None,]), name='gt')
-    #label_one_hot = tf.one_hot(label_place, depth=FLAGS.num_classes, axis=-1)
-    #dropout_param = tf.placeholder(tf.float32)
-    ##################################################
-    ########### Model + Loss + Accuracy ##############
-    ##################################################
-    # A simple fully connected with two class and a softmax is equivalent to Logistic Regression.
-    #logits = tf.contrib.layers.fully_connected(inputs=image_place, num_outputs = FLAGS.num_classes, scope='fc')    
-    #with tf.name_scope('loss'):
-    #    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=label_one_hot))
-    # Accuracy
-    #with tf.name_scope('accuracy'):
-    #    # Evaluate the model
-    #    correct_pred = tf.equal(tf.argmax(logits, 1), tf.argmax(label_one_hot, 1))
-    #    # Accuracy calculation
-    #    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
+
+        
 if __name__ == '__main__':
     print(tf.__version__)
     Test1()
@@ -171,6 +166,61 @@ with tf.Session() as sess:
         print('epoch %d, loss=%f' %(epoch_num+1, loss_value))
         # save the values of weight and bias
         wcoeff, bias = sess.run([W, b])
+
+
+    X = tf.placeholder(dtype=tf.float32)
+    Y = tf.placeholder(dtype=tf.float32)
+    
+    weights_shape = (numFeatures, 1) 
+    W = tf.Variable(dtype=tf.float32, initial_value=tf.random_normal(weights_shape))  # Weights of the model
+    bias_shape = (1, 1)    
+    b = tf.Variable(dtype=tf.float32, initial_value=tf.random_normal(bias_shape))
+    # creating the weight and bias.
+    # The defined variables will be initialized to zero.
+    #W = tf.Variable(0.0, name="weights")
+    #b = tf.Variable(0.0, name="bias")
+
+    #define network
+    Y = X * W + b
+    #tf.matmul(X, W)
+
+    #loss_function = tf.losses.softmax_cross_entropy(Y_true, Y_pred)
+    loss_function = rand_loss_function(Y_true, Y_pred)
+
+    learner = tf.train.GradientDescentOptimizer(0.1).minimize(loss_function)
+
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        for i in range(500):
+            result = sess.run(learner, {X: X_train, Y_true: y_train})
+            #if i % 100 == 0:
+            #print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(loss_function, {X: X_test, Y_true: y_test})))
+        y_pred = sess.run(Y_pred, {X: X_test})
+        W_final, b_final = sess.run([W, b])
+
+    predicted_y_values = np.argmax(y_pred, axis=1)
+    predicted_y_values        
+
+    #potential other way to get loss in
+    ########### Defining place holders ############
+    ###############################################
+    #image_place = tf.placeholder(tf.float32, shape=([None, num_features]), name='image')
+    #label_place = tf.placeholder(tf.int32, shape=([None,]), name='gt')
+    #label_one_hot = tf.one_hot(label_place, depth=FLAGS.num_classes, axis=-1)
+    #dropout_param = tf.placeholder(tf.float32)
+    ##################################################
+    ########### Model + Loss + Accuracy ##############
+    ##################################################
+    # A simple fully connected with two class and a softmax is equivalent to Logistic Regression.
+    #logits = tf.contrib.layers.fully_connected(inputs=image_place, num_outputs = FLAGS.num_classes, scope='fc')    
+    #with tf.name_scope('loss'):
+    #    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=label_one_hot))
+    # Accuracy
+    #with tf.name_scope('accuracy'):
+    #    # Evaluate the model
+    #    correct_pred = tf.equal(tf.argmax(logits, 1), tf.argmax(label_one_hot, 1))
+    #    # Accuracy calculation
+    #    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
         '''
 
@@ -257,6 +307,7 @@ def TFRandLoss(
     edge_loss = tf.square(tf.subtract(gt_affs, affs))
 
     return tf.reduce_sum(tf.multiply(weights, edge_loss))
+
 
 
     '''
