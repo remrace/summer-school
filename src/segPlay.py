@@ -168,46 +168,15 @@ def getGroundTruths():
     #plt.show()
     return labels
 
-<<<<<<< HEAD
-if __name__ == '__main__':
-    print("Init")
-    #TestDSN()
-    #TestGraphCluster()
-    #TestGraphCluster()
-    #TestWS()
-    #RunExp()
-    
-    image = Image.open('./synimage/original/s74.bmp').convert("L")
-=======
 def LP_GT():
     image = Image.open('./synimage/noise/s1.png').convert("L")
->>>>>>> 0c1f99f990d0c4c4384f9a1d4abd3038bed0c5dd
     print('converting to graph...')
     G = syn.InitImage(image)
     print('done')
 
-    print('CC...')
-    CCLabels, CCE, param = dsnNode.Minimize(G, nodeType='CC') 
-    
-    print('WC...')
-    WCLabels, WCE, param = dsnNode.Minimize(G, nodeType='WC') 
-    
-    #print('KL...')
-    #KLLabels, KLE = gc.Minimize(G, 100, minType='kl')
-    
-    print('LP...')
     LPLabels, LPE = gc.Minimize(G, 100, minType='lp')
+    viz.viz_segment(LPLabels)
     
-    print("CCE: " + str(CCE))
-    print("WCE: " + str(WCE))
-    #print("KLE: " + str(KLE))
-    print("LPE: " + str(LPE))
-
-    viz.viz_segment(label=CCLabels, title='CC')
-    viz.viz_segment(label=WCLabels, title='WC')
-    #viz.viz_segment(label=KLLabels, title='KL')
-    viz.viz_segment(label=LPLabels, title='LP')
-
     plt.show()
    
 
