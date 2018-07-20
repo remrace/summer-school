@@ -10,6 +10,9 @@ import SynGraph as syn
 
 GRAPH_WIDTH = 10
 GRAPH_HEIGHT = GRAPH_WIDTH
+numOutputs = 1
+numFeatures = 2
+numSamples = 200 
 
 def KerasTest():
     model = keras.Sequential()
@@ -25,20 +28,20 @@ def KerasTest():
     #          metrics=['accuracy'])
     
 
-def SynTestData(numFeatures, numSamples, plotme = None):
+def SynTestData(numFeatures, numSamples):
 
     X_train, Y_train = make_blobs(n_features=numFeatures, n_samples=numSamples, centers=2, random_state=500)
-    #Y_train = OneHotEncoder().fit_transform(y_flat.reshape(-1, 1)).todense()
-    #Y_train = np.array(Y_train)
-    # Optional line: Sets a default figure size to be a bit larger.
-    if plotme is not None:
-        plt.rcParams['figure.figsize'] = (24, 10)
-        plt.scatter(X_train[:,0], X_train[:,1], c=Y_train, alpha=0.4, s=150)
-        plt.show() 
-
     Y_train = Y_train * 2 - 1    
     
     return(X_train, Y_train)
+
+def VizTest(X_values):
+    h = 1
+    x_min, x_max = X_values[:, 0].min() - 2 * h, X_values[:, 0].max() + 2 * h
+    y_min, y_max = X_values[:, 1].min() - 2 * h, X_values[:, 1].max() + 2 * h
+    x_0, x_1 = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    decision_points = np.c_[x_0.ravel(), x_1.ravel()]
+    return(decision_points, x_0, x_1)
 
 def rand_loss_function(YT, YP):
     # Need to get from YP to A
@@ -58,42 +61,86 @@ def rand_loss_function(YT, YP):
 
     return tf.squared_difference(YT, YP)
 
-def test_loss(YT, YP):
-    return tf.squared_difference(YT, YP)
+def test_loss(YT, YP):        
+    #print(YP)
+    #print(YP.shape)
+    sloss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(YP, YT)))
+    #sloss = tf.square(tf.subtract(YT, YP))
+    #print(sloss)
+    #return tf.reduce_sum(sloss) 
+    return tf.reduce_mean(sloss) 
+
+def test_error(YT, YP):        
+    
+    num = tf.count_nonzero(tf.maximum(0.0, tf.multiply(YP, YT)))
+    
+    return tf.divide(num, numSamples)
         
 
 def Test1():
-    numFeatures = 2
-    numSamples = 200 
-    X_train, Y_train = SynTestData(numFeatures, numSamples, plotme = False)
+
+    X_train, Y_train = SynTestData(numFeatures, numSamples)
+    xmap, x_0, x_1 = VizTest(X_train)        
+    
+    #Y2 = OneHotEncoder().fit_transform(Y_train.reshape(-1, 1)).todense()
+    #Y2 = np.array(Y2)
         
-    weights_shape = (numFeatures, 1) 
-    bias_shape = (1, 1)    
+    weights_shape = (numFeatures, numOutputs) 
+    bias_shape = (1, numOutputs)    
 
     W = tf.Variable(dtype=tf.float32, initial_value=tf.random_normal(weights_shape))  # Weights of the model
     b = tf.Variable(dtype=tf.float32, initial_value=tf.random_normal(bias_shape))
 
     X = tf.placeholder(tf.float32, name="X")
     Y = tf.placeholder(tf.float32, name="Y")
-    
-    YP = X * W + b
+        
+    YP = tf.matmul(X, W)  + b
     
     loss_function = test_loss(Y, YP)
+    error_function = test_error(Y, YP)
 
-    learner = tf.train.GradientDescentOptimizer(0.1).minimize(loss_function)
+    learner = tf.train.GradientDescentOptimizer(0.01).minimize(loss_function)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(50):
+        for i in range(1000):
             result = sess.run(learner, {X: X_train, Y: Y_train})
-            #if i % 100 == 0:
-            #print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(loss_function, {X: X_test, Y_true: y_test})))
-        y_pred = sess.run(Y_pred, {X: X_train})
+            if i % 10 == 0:
+                print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(error_function, {X: X_train, Y: Y_train})))
+        
+        y_pred = sess.run(YP, {X: xmap})
         W_final, b_final = sess.run([W, b])
 
+    
+    print("Scatter 1")
+    print(Y_train.shape)
+    plt.rcParams['figure.figsize'] = (24, 10)
+    plt.scatter(X_train[:,0], X_train[:,1], c=Y_train>0, alpha=0.4, s=150)
+
+    Z = np.array(y_pred)
+    Z = Z.reshape(Z.shape[0])
+    Z = Z > 0
+    #Z = Z.reshape(xx.shape)
+    
+    print("Scatter 2")
+    print(Z.shape)
+    plt.scatter(xmap[:,0], xmap[:,1], c=Z, marker='x') #alpha=0.3)
+    #plt.scatter(X_test[:,0], X_test[:,1], c=predicted_y_values, marker='x', s=200)
+    #plt.contourf(x_0, x_1, Z, alpha=0.1)
+    #plt.xlim(x_0.min(), x_0.max())
+    #plt.ylim(x_1.min(), x_1.max())
+
+    #plt.scatter(X_train[:,0], X_train[:,1], c=y_train_flat, alpha=0.3)
+    #plt.scatter(X_test[:,0], X_test[:,1], c=predicted_y_values, marker='x', s=200)
+
+    #print(y_pred)
     #predicted_y_values = np.argmax(y_pred, axis=1)
-    #predicted_y_values
+    #print(predicted_y_values)
     print(W_final)
+    print(b_final)
+
+    plt.show() 
+
 
 
 
