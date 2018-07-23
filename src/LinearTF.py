@@ -8,15 +8,30 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.decomposition import PCA
 import SegEval as ev
 import SynGraph as syn
-import SegBSDS as bsds 
 
+GRAPH_WIDTH = 10
+GRAPH_HEIGHT = GRAPH_WIDTH
 numOutputs = 1
 numFeatures = 2
 numSamples = 200 
 batchSize = 200
-   
-        
+
+
+def SynTestData(numFeatures, numSamples):
+
+    X_train, Y_train = make_blobs(n_features=numFeatures, n_samples=numSamples, centers=2, random_state=500)
+    Y_train = Y_train * 2.0 - 1.0    
     
+    return(X_train, Y_train)
+
+def VizTest(X_values):
+    h = 1
+    x_min, x_max = X_values[:, 0].min() - 2 * h, X_values[:, 0].max() + 2 * h
+    y_min, y_max = X_values[:, 1].min() - 2 * h, X_values[:, 1].max() + 2 * h
+    x_0, x_1 = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    decision_points = np.c_[x_0.ravel(), x_1.ravel()]
+    return(decision_points, x_0, x_1)
+
 def rand_loss_function(YT, YP):
     # Need to get from YP to A
     #G = syn.InitWithAffinities(GRAPH_WIDTH, GRAPH_HEIGHT, A)
@@ -60,13 +75,9 @@ def test_error(YT, YP):
     return tf.divide(num, numSamples)
         
 
-def TrainTF(img, seg):
+def Test1():
 
-
-    (patchImg, patchSeg, nlabels, elabels) = SamplePatch(img, seg)
-
-    return; 
-
+    X_train, Y_train = SynTestData(numFeatures, numSamples)
     #print(Y_train.shape)
     Y_train = Y_train.reshape(Y_train.shape[0], 1)
     print(Y_train.shape)

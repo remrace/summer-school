@@ -7,6 +7,24 @@ import itertools#some function definitions
 DELTA_TOLERANCE = 1.0e-12
 
 
+def GetNodeEdgeLabels(seg):
+    
+    G = nx.grid_2d_graph(seg.shape[0], seg.shape[1])
+    nlabels = dict()
+    elabels = dict()
+    for (u,v,d) in G.edges(data = True):
+        labelu = seg[u[0], u[1]]
+        labelv = seg[v[0], v[1]]
+        nlabels[u] = seg[u[0], u[1]]
+        nlabels[v] = seg[v[0], v[1]]
+
+        if abs(nlabels[u] - nlabels[v]) < 1.0:
+            elabels[(u,v)] = 1.0
+        else:
+            elabels[(u,v)] = -1.0
+
+    return (nlabels, elabels) 
+
 
 def FindMinEnergyThreshold(WG, eval=None):
     
