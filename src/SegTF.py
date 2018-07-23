@@ -64,8 +64,8 @@ def rand_loss_function(YT, YP):
     return tf.squared_difference(YT, YP)
 
 def test_loss(YT, YP):           
-    #sloss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(YP, YT)))
-    sloss = tf.maximum(0.0, tf.multiply(-1.0, tf.multiply(YP, YT)))
+    sloss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(YP, YT)))
+    #sloss = tf.maximum(0.0, tf.multiply(-1.0, tf.multiply(YP, YT)))
     #sloss = tf.square(tf.subtract(YT, YP))
     #print(sloss)
     #return tf.reduce_sum(sloss) 
@@ -127,7 +127,7 @@ def Test1():
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(1000):
+        for i in range(100):
             result = sess.run(learner, {X: X_train, Y: Y_train})
             if i % 10 == 0:
                 mistakes = sess.run(error_function, {X: X_train, Y: Y_train})
