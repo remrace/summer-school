@@ -37,6 +37,8 @@ def TestRand():
         #viz.DrawGraph(RG, labels=CCLabels, title='CC labels')         
 
         (posCounts, negCounts, mstEdges) = ev.FindRandCounts(RG, myLabels)
+        #print(posCounts)
+        #print(negCounts)
         plt.show() 
 
 
@@ -187,6 +189,6 @@ if __name__ == '__main__':
     #TestGraphCluster()
     #TestWS()
     #RunExp()
-    #TestRand()
-    TestEnergyRand()
+    TestRand()
+    #TestEnergyRand()
     print("Exit")

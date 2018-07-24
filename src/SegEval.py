@@ -15,15 +15,28 @@ def GetNodeEdgeLabels(seg):
     for (u,v,d) in G.edges(data = True):
         labelu = seg[u[0], u[1]]
         labelv = seg[v[0], v[1]]
-        nlabels[u] = seg[u[0], u[1]]
-        nlabels[v] = seg[v[0], v[1]]
-
-        if abs(nlabels[u] - nlabels[v]) < 1.0:
+        nlabels[u] = labelu
+        nlabels[v] = labelv
+        
+        if abs(labelu - labelv) < 1.0:
             elabels[(u,v)] = 1.0
         else:
             elabels[(u,v)] = -1.0
 
-    return (nlabels, elabels) 
+    return (G, nlabels, elabels) 
+
+def SamplePatch(img, seg, pSize, kSize):
+    eSize = int((kSize-1)/2)
+    
+    x0 = np.random.randint(eSize, (img.shape[0]-pSize-eSize)) 
+    y0 = np.random.randint(eSize, (img.shape[1]-pSize-eSize)) 
+    
+    patchImg = img[(x0-eSize):(x0+pSize+eSize), (y0-eSize):(y0+pSize+eSize), :]
+    patchSeg = seg[x0:(x0+pSize), y0:(y0+pSize)]
+
+    (G, nlabels, elabels) =  GetNodeEdgeLabels(patchSeg)
+
+    return(patchImg, patchSeg, G, nlabels, elabels)
 
 
 def FindMinEnergyThreshold(WG, eval=None):
@@ -131,11 +144,13 @@ def FindRandCounts(WG, gtLabels):
     sortedEdges = sorted(edgeWeights, reverse=True, key=lambda edge: edge[2]) 
 
     mstEdges = list()
+    mstInd = list()
     posCounts = list()
     negCounts = list()
     totalPos = 0.0
     totalNeg = 0.0    
     
+    upto = 0
 
     for u, v, w in sortedEdges:
         su = mySets[u]
@@ -147,6 +162,7 @@ def FindRandCounts(WG, gtLabels):
             numLabelsV = GetNumberLabels( labelCount[sv] )
             labelDisagreement = numLabelsU * numLabelsV - labelAgreement
             mstEdges.append( (u,v) )
+            mstInd.append(upto)
             posCounts.append(labelAgreement)
             negCounts.append( labelDisagreement)
 
@@ -159,9 +175,10 @@ def FindRandCounts(WG, gtLabels):
             mySets.union(u, v)
             labelCount[ mySets[u] ] = allLabels.copy()
 
+        upto = upto + 1
     #print(mstEdges)    
-    print("Total Pos: " + str(totalPos) + " Neg: " + str(totalNeg)) 
-    return(posCounts, negCounts, mstEdges)
+    #print("Total Pos: " + str(totalPos) + " Neg: " + str(totalNeg)) 
+    return(posCounts, negCounts, mstEdges, mstInd)
 
 
 
@@ -204,6 +221,8 @@ def FindMinEnergyAndRandCounts(WG, gtLabels, evalw=None):
     ei = 1      # edge index
     lowE = accTotal[0]
     lowT = sortedEdges[0][2] + DELTA_TOLERANCE
+    myMstEdge = -np.ones( (WG.number_of_edges()), np.float32)
+    upto = 0
 
     for u, v, w in sortedEdges:
         su = mySets[u]
@@ -218,6 +237,7 @@ def FindMinEnergyAndRandCounts(WG, gtLabels, evalw=None):
                 for uev in WG[cu]:                
                     if mySets[uev] == mySets[v]:
                         accWeight = accWeight + evalw[cu][uev]['weight']
+                        
                 cu = nextNode[cu]
                 if cu == u:
                     done = True

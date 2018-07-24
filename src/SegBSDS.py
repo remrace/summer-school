@@ -24,20 +24,6 @@ TRAIN_IMG_EXT = '.jpg'
 
 TRAIN_NAME = ['100075']
 
-PATCH_SIZE = 10
-
-
-def SamplePatch(img, seg):
-    
-    x0 = np.random.randint(0, (img.shape[0]-PATCH_SIZE)) 
-    y0 = np.random.randint(0, (img.shape[0]-PATCH_SIZE)) 
-    
-    patchImg = img[x0:x0+PATCH_SIZE, y0:y0+PATCH_SIZE, :]
-    patchSeg = img[x0:x0+PATCH_SIZE, y0:y0+PATCH_SIZE]
-
-    (nlabels, elabels) =  ev.GetNodeEdgeLabels(patchSeg)
-
-    return(patchImg, patchSeg, nlabels, elabels)
 
 def LoadTrain(id = 0):
     

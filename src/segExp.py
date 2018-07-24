@@ -26,7 +26,9 @@ def TestExp1():
     plt.show()
 
     print("Training")
-    segTrain.TrainLinear(img1, seg1)    
+    segTrain.Train(img2, seg2)    
+
+    
     
 
 if __name__ == '__main__':
