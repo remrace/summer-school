@@ -178,7 +178,7 @@ def FindRandCounts(WG, gtLabels):
         upto = upto + 1
     #print(mstEdges)    
     #print("Total Pos: " + str(totalPos) + " Neg: " + str(totalNeg)) 
-    return(posCounts, negCounts, mstEdges, mstInd)
+    return(posCounts, negCounts, mstEdges, mstInd, totalPos, totalNeg)
 
 
 

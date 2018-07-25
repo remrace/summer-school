@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import SegGraph as seglib
 
 NUM_OUTPUTS = 1
-PATCH_SIZE = 21
-KERNEL_SIZE = 11
+PATCH_SIZE = 11
+KERNEL_SIZE = 5
 N = (PATCH_SIZE-1) * PATCH_SIZE * 2
 D = KERNEL_SIZE * KERNEL_SIZE * 3
     
@@ -48,6 +48,7 @@ def UnrollData(img, seg, G, nlabels, elabels):
     X_train = np.zeros( (N, D), np.float32)
     Y_train = np.zeros( (N, 1), np.float32)
     upto = 0
+    #print(G.edges())
     for (u,v) in G.edges():
         uimg = img[u[0]:(u[0]+KERNEL_SIZE), u[1]:(u[1]+KERNEL_SIZE), :]
         vimg = img[v[0]:(v[0]+KERNEL_SIZE), v[1]:(v[1]+KERNEL_SIZE), :]
@@ -55,6 +56,7 @@ def UnrollData(img, seg, G, nlabels, elabels):
         X_train[upto,:] = np.reshape(aimg, (1, D))
         Y_train[upto, 0] = elabels[(u,v)]
         upto = upto + 1
+        
 
     return (X_train, Y_train)
 
@@ -62,7 +64,8 @@ def Train(img, seg):
     
     imgn = (img / img.max()) * 2.0 - 1.0
     
-    mySeed = 37
+    #mySeed = 37
+    mySeed = 38
     np.random.seed(mySeed)
 
     (patchImg, patchSeg, G, nlabels, elabels) = ev.SamplePatch(imgn, seg, PATCH_SIZE, KERNEL_SIZE)
@@ -79,53 +82,49 @@ def Train(img, seg):
 
     def rand_loss_function(YT, YP):
 
-        def GetRandWeights(A):
+        def GetRandWeights(Y, A):
             upto = 0
             for u, v, d in G.edges(data = True):
                 d['weight'] = A[upto]
                 upto = upto + 1
 
-            [posCounts, negCounts, mstEdges, edgeInd] = ev.FindRandCounts(G, nlabels)
+            [posCounts, negCounts, mstEdges, edgeInd, totalPos, totalNeg] = ev.FindRandCounts(G, nlabels)
             #randW = numpy array (posCounts - negCounts) / totalWeight            
-            mstW = posCounts - negCounts
+
+            WY = np.zeros( (N, 1), np.float32)
+            SY = np.ones( (N, 1), np.float32)
+
+            # start off with every point in own cluster
+            posError = totalPos
+            negError = 0.0
+                            
+            for i in range(len(posCounts)):
+                ind = edgeInd[i]
+                posError = posError - posCounts[i]
+                negError = negError + negCounts[i]
+
+                WS = posError - negError
+                                
+                WY[ind] = abs(WS)
+                if WS > 0.0:
+                    if Y[ind] < 0.0:
+                        SY[ind] = -1.0                        
+                if WS < 0.0:
+                    if Y[ind] > 0.0:
+                        SY[ind] = -1.0                
             
-            posMst = mstW > 0
-            posEdges = edgeInd[ posMst ]
-            posWeight = mstW[ posMst ]
-
-            negMst = mstW < 0
-            negEdges = edgeInd[ negMst ]
-            negWeight = -mstW[ negMst ]
-            
-            W = np.zeros( (N, 1), np.float32)
-
-            totalPos = 0.0
-            for ei in range(len(posMst)):                
-                loss = 1 - A[ posEdges[ei] ]
-                if loss > 0.0:
-                    wloss = posWeight[ei] * loss
-                    W[ posEdges[ei] ] = wloss
-                    totalPos = totalPos + wloss
-
-            totalNeg = 0.0
-            for ei in range(len(negMst)):                
-                loss = 1 + A[ negEdges[ei] ]
-                if loss > 0.0:
-                    wloss = negWeight[ei] * loss
-                    W[ negEdges[ei] ] = wloss
-                    totalNeg = totalNeg + wloss
-
-            totalW = totalPos + totalNeg
-            if totalW > 1.0e-8: 
-                W = W / totalW
-            
-            return W
+            totalW = np.sum(WY)
+            if totalW > 0.0:
+                WY = WY / totalW
+            return (SY, WY)
                 
-        RW = tf.py_func(GetRandWeights, [YP], [tf.float32]) 
+        (SY, WY) = tf.py_func(GetRandWeights, [YT, YP], [tf.float32, tf.float32]) 
                 
-        #weightedLoss = tf.multiply(RW, YP)
+        newY = tf.multiply(SY, YT)
+        edgeLoss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(YP, newY)))
+        weightedLoss = tf.multiply(WY, edgeLoss)
 
-        return tf.reduce_sum(RW) 
+        return tf.reduce_sum(weightedLoss) 
     
     def test_loss(YT, YP):           
         sloss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(YP, YT)))
@@ -156,17 +155,19 @@ def Train(img, seg):
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(1000):
+        for i in range(841):
             result = sess.run(learner, {X: X_train, Y: Y_train})
             if i % 10 == 0:
                 loss = sess.run(loss_function, {X: X_train, Y: Y_train})
                 #print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(error_function, {X: X_train, Y: Y_train})))
                 print("Iteration " + str(i) + ": " + str(loss)) 
         
-        y_pred = sess.run(YP, {X: X_train})
         W_final, b_final = sess.run([W, b])
+        y_pred = sess.run(YP, {X: X_train})
+        loss = sess.run(loss_function, {X: X_train, Y: Y_train})
+        print("Final loss: " + str(loss)) 
+        
     upto = 0
-
     for u, v, d in G.edges(data = True):
         d['weight'] = float(y_pred[upto])
         upto = upto + 1
@@ -175,12 +176,12 @@ def Train(img, seg):
     predMax = y_pred.max()
     print("Prediction has range " + str(predMin) + " -> " + str(predMax))
 
-    labels = seglib.GetLabelsAtThreshold(G, 1.0)
+    labels = seglib.GetLabelsAtThreshold(G, 0.0)
 
     patchPred = np.zeros( (patchSeg.shape[0], patchSeg.shape[1]), np.float32)
     for j in range(patchSeg.shape[1]):
         for i in range(patchSeg.shape[0]):
-            patchPred[i,j] = labels[(i,j)]
+            patchPred[j,i] = labels[(i,j)]
 
     ShowResult(patchImg, patchSeg, patchPred)
     #plt.show()
