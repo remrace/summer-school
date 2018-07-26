@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 import itertools#some function definitions
+from scipy.signal import convolve2d
 
 DELTA_TOLERANCE = 1.0e-12
 
@@ -25,6 +26,9 @@ def GetNodeEdgeLabels(seg):
 
     return (G, nlabels, elabels) 
 
+def rgb2gray(rgb):
+    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
+
 def SamplePatch(img, seg, pSize, kSize):
     eSize = int((kSize-1)/2)
     
@@ -32,6 +36,27 @@ def SamplePatch(img, seg, pSize, kSize):
     y0 = np.random.randint(eSize, (img.shape[1]-pSize-eSize)) 
     
     patchImg = img[(x0-eSize):(x0+pSize+eSize), (y0-eSize):(y0+pSize+eSize), :]
+    
+    #patchGray = rgb2gray(patchImg)    
+
+    sobel_x = np.c_[
+        [-1,0,1],
+        [-2,0,2],
+        [-1,0,1]
+    ]
+
+    sobel_y = np.c_[
+        [1,2,1],
+        [0,0,0],
+        [-1,-2,-1]
+    ]
+
+    for b in [0,1,2]:
+        sx = convolve2d(np.squeeze(patchImg[:,:,b]), sobel_x, mode="same", boundary="symm")
+        sy = convolve2d(np.squeeze(patchImg[:,:,b]), sobel_y, mode="same", boundary="symm")
+        temp = np.sqrt(sx*sx + sy*sy)
+        patchImg[:,:,b] = temp
+    
     patchSeg = seg[x0:(x0+pSize), y0:(y0+pSize)]
 
     (G, nlabels, elabels) =  GetNodeEdgeLabels(patchSeg)
