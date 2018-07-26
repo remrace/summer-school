@@ -23,8 +23,8 @@ def TestExp1():
     (img, seg) = bsds.LoadTrain(0)    
     (img1, seg1, img2, seg2) = bsds.ScaleAndCropData(img, seg)    
     
-    bsds.VizTrainTest(img1, seg1, img2, seg2)
-    plt.show()
+    #bsds.VizTrainTest(img1, seg1, img2, seg2)
+    #plt.show()
 
     print("Training")
     segTrain.Train(img2, seg2)    

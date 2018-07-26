@@ -16,8 +16,7 @@ NUM_OUTPUTS = 1
 PATCH_SIZE = 21
 KERNEL_SIZE = 5
 N = (PATCH_SIZE-1) * PATCH_SIZE * 2
-D = KERNEL_SIZE * KERNEL_SIZE * 3
-    
+D = KERNEL_SIZE * KERNEL_SIZE * 3  
 
 def ShowPatch(img, seg):
     
@@ -62,6 +61,8 @@ def UnrollData(img, seg, G, nlabels, elabels):
 
 def Train(img, seg):
     
+    USE_CC_INFERENCE = False
+
     imgn = (img / img.max()) * 2.0 - 1.0
     
     mySeed = 37
@@ -78,9 +79,8 @@ def Train(img, seg):
     print(X_train.shape)
     print(Y_train.shape)
 
-    viz.DrawGraph(G, labels=nlabels, title='GT labels')             
-
-    ShowPatch(patchImg, patchSeg)    
+    #viz.DrawGraph(G, labels=nlabels, title='GT labels')             
+    #ShowPatch(patchImg, patchSeg)    
 
     def rand_loss_function(YT, YP):
 
@@ -92,7 +92,12 @@ def Train(img, seg):
                 edgeInd[(u,v)] = upto
                 upto = upto + 1
 
-            [posCounts, negCounts, mstEdges, totalPos, totalNeg] = ev.FindRandCounts(G, nlabels)
+            myT = np.zeros( (1,1), np.float32) 
+
+            if USE_CC_INFERENCE:
+                [bestT, lowE, posCounts, negCounts, mstEdges, totalPos, totalNeg] = ev.FindRandCounts(G, nlabels)
+            else:
+                [posCounts, negCounts, mstEdges, totalPos, totalNeg] = ev.FindRandCounts(G, nlabels)                
 
             #print("Num pos: " + str(totalPos) + " neg: " + str(totalNeg))
             WY = np.zeros( (N, 1), np.float32)
@@ -138,16 +143,21 @@ def Train(img, seg):
             #if negWeight > 0.0:
             #    WY[negIndex]  = WY[negIndex] / negWeight
 
-            return (SY, WY)
+            return (SY, WY, myT)
                 
-        (SY, WY) = tf.py_func(GetRandWeights, [YT, YP], [tf.float32, tf.float32]) 
-                
+        (SY, WY, bestT) = tf.py_func(GetRandWeights, [YT, YP], [tf.float32, tf.float32, tf.float32]) 
+        
         newY = tf.multiply(SY, YT)
-        edgeLoss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(YP, newY)))
+        
+        if USE_CC_INFERENCE:            
+            edgeLoss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(tf.subtract(YP, bestT), newY)))
+        else:
+            edgeLoss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(YP, newY)))
+        
         weightedLoss = tf.multiply(WY, edgeLoss)
 
         return tf.reduce_sum(weightedLoss) 
-    
+
     def test_loss(YT, YP):           
         sloss = tf.maximum(0.0, tf.subtract(1.0, tf.multiply(YP, YT)))
         #sloss = tf.maximum(0.0, tf.multiply(-1.0, tf.multiply(YP, YT)))
@@ -171,7 +181,7 @@ def Train(img, seg):
     YP = tf.subtract(tf.matmul(X, W), b)
     
     #loss_function = test_loss(Y, YP)    
-    loss_function = rand_loss_function(Y, YP)    
+    loss_function = rand_loss_function(Y, YP)        
 
     learner = tf.train.GradientDescentOptimizer(0.1).minimize(loss_function)
 
@@ -179,13 +189,14 @@ def Train(img, seg):
         sess.run(tf.global_variables_initializer())
         for i in range(1000):
             result = sess.run(learner, {X: X_train, Y: Y_train})
-            if i % 10 == 0:
+            if i % 100 == 0:
                 loss = sess.run(loss_function, {X: X_train, Y: Y_train})
                 #print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(error_function, {X: X_train, Y: Y_train})))
                 print("Iteration " + str(i) + ": " + str(loss)) 
         
         W_final, b_final = sess.run([W, b])
         y_pred = sess.run(YP, {X: X_train})
+
         loss = sess.run(loss_function, {X: X_train, Y: Y_train})
         print("Final loss: " + str(loss)) 
         
@@ -199,8 +210,8 @@ def Train(img, seg):
     print("Prediction has range " + str(predMin) + " -> " + str(predMax))
 
     labels = seglib.GetLabelsAtThreshold(G, 0.0)
-    viz.DrawGraph(G, labels=labels, title='Pred labels')         
-    plt.show()
+    #viz.DrawGraph(G, labels=labels, title='Pred labels')         
+    #plt.show()
 
     patchPred = np.zeros( (patchSeg.shape[0], patchSeg.shape[1]), np.float32)
     for j in range(patchSeg.shape[1]):

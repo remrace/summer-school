@@ -38,24 +38,24 @@ def SamplePatch(img, seg, pSize, kSize):
     patchImg = img[(x0-eSize):(x0+pSize+eSize), (y0-eSize):(y0+pSize+eSize), :]
     
     #patchGray = rgb2gray(patchImg)    
+    if True:
+        sobel_x = np.c_[
+            [-1,0,1],
+            [-2,0,2],
+            [-1,0,1]
+        ]
 
-    sobel_x = np.c_[
-        [-1,0,1],
-        [-2,0,2],
-        [-1,0,1]
-    ]
+        sobel_y = np.c_[
+            [1,2,1],
+            [0,0,0],
+            [-1,-2,-1]
+        ]
 
-    sobel_y = np.c_[
-        [1,2,1],
-        [0,0,0],
-        [-1,-2,-1]
-    ]
-
-    for b in [0,1,2]:
-        sx = convolve2d(np.squeeze(patchImg[:,:,b]), sobel_x, mode="same", boundary="symm")
-        sy = convolve2d(np.squeeze(patchImg[:,:,b]), sobel_y, mode="same", boundary="symm")
-        temp = np.sqrt(sx*sx + sy*sy)
-        patchImg[:,:,b] = temp
+        for b in [0,1,2]:
+            sx = convolve2d(np.squeeze(patchImg[:,:,b]), sobel_x, mode="same", boundary="symm")
+            sy = convolve2d(np.squeeze(patchImg[:,:,b]), sobel_y, mode="same", boundary="symm")
+            temp = np.sqrt(sx*sx + sy*sy)
+            patchImg[:,:,b] = temp
     
     patchSeg = seg[x0:(x0+pSize), y0:(y0+pSize)]
 
@@ -302,7 +302,7 @@ def FindMinEnergyAndRandCounts(WG, gtLabels, evalw=None):
             ei = ei + 1
         
     #print("Lowest Energy: " + str(lowE) + " at threshold " + str(lowThreshold)) 
-    return(lowT, lowE, posCountsRand, negCountsRand, mstEdges, mstEdgeWeights)
+    return(lowT, lowE, posCountsRand, negCountsRand, mstEdges, posCountsRand, negCountsRand)
 
 def FindBestRandThreshold(posCounts, negCounts, mstEdges, mstEdgeWeights):
     
