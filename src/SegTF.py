@@ -85,13 +85,16 @@ def Train(img, seg):
     def rand_loss_function(YT, YP):
 
         def GetRandWeights(Y, A):
+            edgeInd = dict()
             upto = 0
             for u, v, d in G.edges(data = True):
                 d['weight'] = A[upto]
+                edgeInd[(u,v)] = upto
                 upto = upto + 1
 
-            [posCounts, negCounts, mstEdges, edgeInd, totalPos, totalNeg] = ev.FindRandCounts(G, nlabels)
-         
+            [posCounts, negCounts, mstEdges, totalPos, totalNeg] = ev.FindRandCounts(G, nlabels)
+
+            #print("Num pos: " + str(totalPos) + " neg: " + str(totalNeg))
             WY = np.zeros( (N, 1), np.float32)
             SY = np.ones( (N, 1), np.float32)
             posIndex = np.zeros( (N, 1), np.bool)
@@ -105,7 +108,7 @@ def Train(img, seg):
             negError = 0.0
                             
             for i in range(len(posCounts)):
-                ind = edgeInd[i]
+                ind = edgeInd[ mstEdges[i] ]
                 posError = posError - posCounts[i]
                 negError = negError + negCounts[i]
 
@@ -170,13 +173,13 @@ def Train(img, seg):
     #loss_function = test_loss(Y, YP)    
     loss_function = rand_loss_function(Y, YP)    
 
-    learner = tf.train.GradientDescentOptimizer(0.01).minimize(loss_function)
+    learner = tf.train.GradientDescentOptimizer(0.1).minimize(loss_function)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(100000):
+        for i in range(1000):
             result = sess.run(learner, {X: X_train, Y: Y_train})
-            if i % 1000 == 0:
+            if i % 10 == 0:
                 loss = sess.run(loss_function, {X: X_train, Y: Y_train})
                 #print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(error_function, {X: X_train, Y: Y_train})))
                 print("Iteration " + str(i) + ": " + str(loss)) 

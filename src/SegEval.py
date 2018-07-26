@@ -168,8 +168,7 @@ def FindRandCounts(WG, gtLabels):
     
     sortedEdges = sorted(edgeWeights, reverse=True, key=lambda edge: edge[2]) 
 
-    mstEdges = list()
-    mstInd = list()
+    mstEdges = list()    
     posCounts = list()
     negCounts = list()
     totalPos = 0.0
@@ -186,8 +185,7 @@ def FindRandCounts(WG, gtLabels):
             numLabelsU = GetNumberLabels( labelCount[su] )
             numLabelsV = GetNumberLabels( labelCount[sv] )
             labelDisagreement = numLabelsU * numLabelsV - labelAgreement
-            mstEdges.append( (u,v) )
-            mstInd.append(upto)
+            mstEdges.append( (u,v) )            
             posCounts.append(labelAgreement)
             negCounts.append( labelDisagreement)
 
@@ -203,7 +201,7 @@ def FindRandCounts(WG, gtLabels):
         upto = upto + 1
     #print(mstEdges)    
     #print("Total Pos: " + str(totalPos) + " Neg: " + str(totalNeg)) 
-    return(posCounts, negCounts, mstEdges, mstInd, totalPos, totalNeg)
+    return(posCounts, negCounts, mstEdges, totalPos, totalNeg)
 
 
 
@@ -227,6 +225,7 @@ def FindMinEnergyAndRandCounts(WG, gtLabels, evalw=None):
         evalWeights = [(u,v,w) for (u,v,w) in evalw.edges(data = 'weight')]    
 
     mstEdges = list()
+    mstInd = list()
     mstEdgeWeights = list()
     posCountsRand = list()
     negCountsRand = list()
