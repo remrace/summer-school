@@ -27,17 +27,12 @@ def TestExp1():
     #plt.show()
 
     print("Training")
-    segTrain.Train(img2, seg2)    
+    [w, b] = segTrain.Train(img2, seg2, USE_CC_INFERENCE = True)   
 
-
-
-
-NUM_OUTPUTS = 1
-PATCH_SIZE = 21
-KERNEL_SIZE = 11
-N = (PATCH_SIZE-1) * PATCH_SIZE * 2
-D = KERNEL_SIZE * KERNEL_SIZE * 3
+    print("Testing")
+    segTrain.Apply(img2, seg2, w, b, USE_CC_INFERENCE = True) 
     
+
 
 def ShowPatch(img, seg):
     
@@ -49,6 +44,12 @@ def ShowPatch(img, seg):
     plt.imshow(seg)
     plt.show()    
     return    
+
+NUM_OUTPUTS = 1
+PATCH_SIZE = 21
+KERNEL_SIZE = 11
+N = (PATCH_SIZE-1) * PATCH_SIZE * 2
+D = KERNEL_SIZE * KERNEL_SIZE * 3
     
 def UnrollData(img, seg, G, nlabels, elabels):
 

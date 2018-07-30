@@ -302,7 +302,7 @@ def FindMinEnergyAndRandCounts(WG, gtLabels, evalw=None):
             ei = ei + 1
         
     #print("Lowest Energy: " + str(lowE) + " at threshold " + str(lowThreshold)) 
-    return(lowT, lowE, posCountsRand, negCountsRand, mstEdges, posCountsRand, negCountsRand)
+    return(lowT, lowE, posCountsRand, negCountsRand, mstEdges, totalPosRand, totalNegRand)
 
 def FindBestRandThreshold(posCounts, negCounts, mstEdges, mstEdgeWeights):
     

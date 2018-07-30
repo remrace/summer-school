@@ -11,11 +11,6 @@ import SynGraph as syn
 import VizGraph as viz
 import matplotlib.pyplot as plt
 import SegGraph as seglib
-import SegNet as net
-
-# Train parameters 
-NUM_ITERATIONS = 100
-NUM_ITER_REPORT = 10
 
 # Model parameters 
 NUM_OUTPUTS = 1
@@ -23,30 +18,6 @@ PATCH_SIZE = 21
 KERNEL_SIZE = 5
 N = (PATCH_SIZE-1) * PATCH_SIZE * 2
 D = KERNEL_SIZE * KERNEL_SIZE * 3  
-
-def ShowPatch(img, seg):
-    
-    fig=plt.figure(figsize=(4, 2))
-
-    fig.add_subplot(1, 2, 1)
-    plt.imshow(img)
-    fig.add_subplot(1, 2, 2)
-    plt.imshow(seg)
-    plt.show()    
-    return    
-
-def ShowResult(img, seg, pred):
-    
-    fig=plt.figure(figsize=(6, 2))
-
-    fig.add_subplot(1, 3, 1)
-    plt.imshow(img)
-    fig.add_subplot(1, 3, 2)
-    plt.imshow(seg)
-    fig.add_subplot(1, 3, 3)
-    plt.imshow(pred)    
-    plt.show()    
-    return    
         
 def UnrollData(img, seg, G, nlabels, elabels):
 
@@ -62,13 +33,15 @@ def UnrollData(img, seg, G, nlabels, elabels):
         Y_train[upto, 0] = elabels[(u,v)]
         upto = upto + 1
         
-
     return (X_train, Y_train)
 
 def DefineNetwork(x, w, b):
     return( tf.subtract(tf.matmul(x, w), b) )
 
-def Train(img, seg, USE_CC_INFERENCE = False):    
+
+def Train(img, seg):
+    
+    USE_CC_INFERENCE = True
 
     imgn = (img / img.max()) * 2.0 - 1.0
     
@@ -235,9 +208,11 @@ def Train(img, seg, USE_CC_INFERENCE = False):
             patchPred[i,j] = labels[(i,j)]
 
     ShowResult(patchImg, patchSeg, patchPred)
-    return(w_final, b_final)
+    return(W_final, b_final)
 
-def Apply(img, seg, W, b, USE_CC_INFERENCE = False):    
+def Apply(img, seg, W, b):
+    
+    USE_CC_INFERENCE = True
 
     imgn = (img / img.max()) * 2.0 - 1.0
     
@@ -290,7 +265,7 @@ def Apply(img, seg, W, b, USE_CC_INFERENCE = False):
 
 
 def TrainConv(img, seg):
-    
+
     
     (patchImg, patchSeg, nlabels, elabels) = ev.SamplePatch(img, seg)
     #ShowPatch(patchImg, patchSeg)
