@@ -16,10 +16,10 @@ from skimage.viewer import ImageViewer
 import matplotlib.image as mpimg
 import networkx as nx
 
-TRAIN_GT_DIR = '/home/rporter/src/quan/data/BSDS500/data/groundTruth/train/'
-TRAIN_IMG_DIR = '/home/rporter/src/quan/data/BSDS500/data/images/train/'
-#TRAIN_GT_DIR = '/home/dada/src/quann/data/BSDS500/data/groundTruth/train/'
-#TRAIN_IMG_DIR = '/home/dada/src/quann/data/BSDS500/data/images/train/'
+#TRAIN_GT_DIR = '/home/rporter/src/quan/data/BSDS500/data/groundTruth/train/'
+#TRAIN_IMG_DIR = '/home/rporter/src/quan/data/BSDS500/data/images/train/'
+TRAIN_GT_DIR = '/home/dada/src/quann/data/BSDS500/data/groundTruth/train/'
+TRAIN_IMG_DIR = '/home/dada/src/quann/data/BSDS500/data/images/train/'
 
 TRAIN_GT_EXT = '.mat'
 TRAIN_IMG_EXT = '.jpg'

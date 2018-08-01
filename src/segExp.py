@@ -25,13 +25,21 @@ def TestExp1():
     
     #bsds.VizTrainTest(img1, seg1, img2, seg2)
     #plt.show()
-
+    usingCC = False
+    numIter = 100
     print("Training")
-    [w, b] = segTrain.Train(img2, seg2, USE_CC_INFERENCE = True)   
+    [w, b] = segTrain.Train(img2, seg2, USE_CC_INFERENCE = usingCC, NUM_ITERATIONS = numIter)   
 
     print("Testing")
-    segTrain.Apply(img2, seg2, w, b, USE_CC_INFERENCE = True) 
+    segTrain.Apply(img2, seg2, w, b, USE_CC_INFERENCE = usingCC) 
     
+    usingCC = True
+    numIter = 100
+    print("Training")
+    [w, b] = segTrain.Train(img2, seg2, USE_CC_INFERENCE = usingCC, NUM_ITERATIONS = numIter)   
+
+    print("Testing")
+    segTrain.Apply(img2, seg2, w, b, USE_CC_INFERENCE = usingCC) 
 
 
 def ShowPatch(img, seg):

@@ -94,6 +94,9 @@ def FindMinEnergyThreshold(WG, eval=None):
     lowT = sortedEdges[0][2] + DELTA_TOLERANCE
 
     for u, v, w in sortedEdges:
+        if w <= 0.0:
+            break
+
         if mySets[u] != mySets[v]:
             accWeight = 0.0
             # traverse nodes in u and look at edges
@@ -249,6 +252,9 @@ def FindMinEnergyAndRandCounts(WG, gtLabels, evalw=None):
     upto = 0
 
     for u, v, w in sortedEdges:
+        if w <= 0.0:
+            break
+        
         su = mySets[u]
         sv = mySets[v]
         if su != sv:
@@ -329,3 +335,68 @@ def FindBestRandThreshold(posCounts, negCounts, mstEdges, mstEdgeWeights):
             lowT = mstEdgeWeights[i] - DELTA_TOLERANCE        
 
     return(lowT, lowE)
+
+def FindRandErrorAtThreshold(WG, gtLabels, T):
+    
+    mySets = nx.utils.UnionFind()       
+    labelCount = dict()
+
+    for n in WG:        
+        labelCount[n] = dict()
+        labelCount[n][ gtLabels[n] ] = 1.0
+
+
+    edgeWeights = [(u,v,w) for (u,v,w) in WG.edges(data = 'weight')]    
+    
+    sortedEdges = sorted(edgeWeights, reverse=True, key=lambda edge: edge[2]) 
+
+    mstEdges = list()    
+    posCounts = list()
+    negCounts = list()
+    totalPos = 0.0
+    totalNeg = 0.0    
+    
+    upto = 0
+
+    for u, v, w in sortedEdges:
+        su = mySets[u]
+        sv = mySets[v]
+        if su != sv:
+            
+            labelAgreement = DotProductLabels( labelCount[su], labelCount[sv] )
+            numLabelsU = GetNumberLabels( labelCount[su] )
+            numLabelsV = GetNumberLabels( labelCount[sv] )
+            labelDisagreement = numLabelsU * numLabelsV - labelAgreement
+            mstEdges.append( w )            
+            posCounts.append(labelAgreement)
+            negCounts.append( labelDisagreement)
+
+            #print(str(u) + " has " str(numLabelsU) + ", " + str(v)  and " + str(numLabelsV) + " got to " + str(labelAgreement) + " and " + str(labelDisagreement))    
+            totalPos = totalPos + posCounts[-1] 
+            totalNeg = totalNeg + negCounts[-1] 
+                        
+            allLabels = CombineLabels(labelCount[su], labelCount[sv])
+            #numAll = GetNumberLabels(allLabels)
+            mySets.union(u, v)
+            labelCount[ mySets[u] ] = allLabels.copy()
+
+        upto = upto + 1
+
+    localPos = totalPos
+    localNeg = 0.0
+
+    # start off with every point in own cluster
+    randError = (localPos + localNeg) / (totalPos + totalNeg)
+    
+    for i in range(len(posCounts)):
+        if T > mstEdges[i]:
+            return(randError)
+        localPos = localPos - posCounts[i]
+        localNeg = localNeg + negCounts[i]
+
+        randError = (localPos + localNeg) / (totalPos + totalNeg)
+		        
+    return(-1.0)
+
+    
+    

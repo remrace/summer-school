@@ -11,13 +11,7 @@ import SynGraph as syn
 import VizGraph as viz
 import matplotlib.pyplot as plt
 import SegGraph as seglib
-import SegNet as net
 
-# Train parameters 
-NUM_ITERATIONS = 100
-NUM_ITER_REPORT = 10
-
-# Model parameters 
 NUM_OUTPUTS = 1
 PATCH_SIZE = 21
 KERNEL_SIZE = 5
@@ -65,10 +59,7 @@ def UnrollData(img, seg, G, nlabels, elabels):
 
     return (X_train, Y_train)
 
-def DefineNetwork(x, w, b):
-    return( tf.subtract(tf.matmul(x, w), b) )
-
-def Train(img, seg, USE_CC_INFERENCE = False):    
+def Train(img, seg, USE_CC_INFERENCE = False, NUM_ITERATIONS = 1000):    
 
     imgn = (img / img.max()) * 2.0 - 1.0
     
@@ -186,7 +177,7 @@ def Train(img, seg, USE_CC_INFERENCE = False):
     X = tf.placeholder(tf.float32,name="X")
     Y = tf.placeholder(tf.float32, name="Y")
         
-    YP = DefineNetwork(X, W, b) 
+    YP = tf.subtract(tf.matmul(X, W), b)
     
     #loss_function = test_loss(Y, YP)    
     loss_function = rand_loss_function(Y, YP)        
@@ -195,35 +186,35 @@ def Train(img, seg, USE_CC_INFERENCE = False):
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        
         for i in range(NUM_ITERATIONS):
-            
             result = sess.run(learner, {X: X_train, Y: Y_train})
-            
-            if i % NUM_ITER_REPORT == 0:
+            if i % (NUM_ITERATIONS/10) == 0:
                 loss = sess.run(loss_function, {X: X_train, Y: Y_train})
                 #print("Iteration {}:\tLoss={:.6f}".format(i, sess.run(error_function, {X: X_train, Y: Y_train})))
                 print("Iteration " + str(i) + ": " + str(loss)) 
         
-        w_final, b_final = sess.run([W, b])        
-        loss = sess.run(loss_function, {X: X_train, Y: Y_train})
-        print("Final loss: " + str(loss)) 
-
+        W_final, b_final = sess.run([W, b])
         y_pred = sess.run(YP, {X: X_train})
-                        
+
+        loss = sess.run(loss_function, {X: X_train, Y: Y_train})            
+        print("Final loss: " + str(loss)) 
+        
     upto = 0
     for u, v, d in G.edges(data = True):
         d['weight'] = float(y_pred[upto])
         upto = upto + 1
     
-    if USE_CC_INFERENCE:
+    predMin = y_pred.min()
+    predMax = y_pred.max()
+    print("Prediction has range " + str(predMin) + " -> " + str(predMax))
+
+    if USE_CC_INFERENCE:      
         [bestT, bestE] = ev.FindMinEnergyThreshold(G)
     else:
         bestT = 0.0
 
-    predMin = y_pred.min()
-    predMax = y_pred.max()
-    print("Best T " + str(bestT) + " from range " + str(predMin) + " -> " + str(predMax))
+    finalRand = ev.FindRandErrorAtThreshold(G, nlabels, bestT)    
+    print("At threshold " + str(bestT) + " Final Error: " + str(finalRand))
 
     labels = seglib.GetLabelsAtThreshold(G, bestT)
     #viz.DrawGraph(G, labels=labels, title='Pred labels')         
@@ -235,46 +226,63 @@ def Train(img, seg, USE_CC_INFERENCE = False):
             patchPred[i,j] = labels[(i,j)]
 
     ShowResult(patchImg, patchSeg, patchPred)
-    return(w_final, b_final)
+    #print(W_final)
+    #print(b_final)
+    return(W_final, b_final)
 
-def Apply(img, seg, W, b, USE_CC_INFERENCE = False):    
+
+
+def Apply(img, seg, W_train, B_train, USE_CC_INFERENCE = False):    
 
     imgn = (img / img.max()) * 2.0 - 1.0
     
-    mySeed = 37
+    mySeed = 600
     
     np.random.seed(mySeed)
 
     (patchImg, patchSeg, G, nlabels, elabels) = ev.SamplePatch(imgn, seg, PATCH_SIZE, KERNEL_SIZE)
 
-    (X_test, Y_test) = UnrollData(patchImg, patchSeg, G, nlabels, elabels)
+    (X_train, Y_train) = UnrollData(patchImg, patchSeg, G, nlabels, elabels)
     
+    #return
     pca = PCA(n_components=D, whiten=True)    
-    X_test = pca.fit_transform(X_test)
+    X_train = pca.fit_transform(X_train)
+    #print(X_train.shape)
+    #print(Y_train.shape)
+
+    #viz.DrawGraph(G, labels=nlabels, title='GT labels')             
+    #ShowPatch(patchImg, patchSeg)        
+
+    W = tf.Variable(dtype=tf.float32, initial_value=W_train) 
+    b = tf.Variable(dtype=tf.float32, initial_value=B_train)
 
     X = tf.placeholder(tf.float32,name="X")
     Y = tf.placeholder(tf.float32, name="Y")
         
-    YP = DefineNetwork(X, W, b) 
-
+    YP = tf.subtract(tf.matmul(X, W), b)
+    
     with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        y_pred = sess.run(YP, {X: X_test})
-                        
+        sess.run(tf.global_variables_initializer())                
+        y_pred = sess.run(YP, {X: X_train})
+
+        
     upto = 0
     for u, v, d in G.edges(data = True):
         d['weight'] = float(y_pred[upto])
         upto = upto + 1
     
-    if USE_CC_INFERENCE:
+    predMin = y_pred.min()
+    predMax = y_pred.max()
+    print("Prediction has range " + str(predMin) + " -> " + str(predMax))
+
+    if USE_CC_INFERENCE:      
         [bestT, bestE] = ev.FindMinEnergyThreshold(G)
     else:
         bestT = 0.0
 
-    predMin = y_pred.min()
-    predMax = y_pred.max()
-    print("Best T " + str(bestT) + " from range " + str(predMin) + " -> " + str(predMax))
-
+    finalRand = ev.FindRandErrorAtThreshold(G, nlabels, bestT)    
+    print("At threshold " + str(bestT) + " Final Error: " + str(finalRand))
+    
     labels = seglib.GetLabelsAtThreshold(G, bestT)
     #viz.DrawGraph(G, labels=labels, title='Pred labels')         
     #plt.show()
@@ -285,12 +293,12 @@ def Apply(img, seg, W, b, USE_CC_INFERENCE = False):
             patchPred[i,j] = labels[(i,j)]
 
     ShowResult(patchImg, patchSeg, patchPred)
-
-
+    #print(W_final)
+    #print(b_final)
 
 
 def TrainConv(img, seg):
-    
+
     
     (patchImg, patchSeg, nlabels, elabels) = ev.SamplePatch(img, seg)
     #ShowPatch(patchImg, patchSeg)
